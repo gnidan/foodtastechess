@@ -10,19 +10,18 @@ box: google/golang
 
 # You can also use services such as databases. Read more on our dev center:
 # http://devcenter.wercker.com/docs/services/index.html
-# services:
-    # - postgres
-    # http://devcenter.wercker.com/docs/services/postgresql.html
-
-    # - mongodb
-    # http://devcenter.wercker.com/docs/services/mongodb.html
+services:
+   - id: mariadb
+     tag: latest
+     env:
+       MYSQL_ROOT_PASSWORD: 2QMwv7EmagEYGt
 
 dev:
   steps:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
     - setup-go-workspace:
-      package-dir: foodtastechess
+        package-dir: foodtastechess
 
     # Gets the dependencies
     - script:
