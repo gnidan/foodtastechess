@@ -31,11 +31,7 @@ dev:
           go get
 
     - internal/shell:
-        cmd: /bin/bash  #defaults to /bin/bash
-        code: |
-          # some code to automatically run in your shell session
-          # before you start interacting
-          cd /var/log
+        cmd: /bin/bash
 
 
 build:
