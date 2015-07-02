@@ -32,11 +32,25 @@ build:
         code: |
           go get
 
+    # Run gofmt to ensure source code is formatted (Don't commit unformatted
+    # code!)
+    - script:
+        name: gofmt
+        code: |
+          FIXED=$(go fmt ./... | wc -l)
+          if [ $FIXED -gt 0 ]; then echo "gofmt - $FIXED file(s) not formatted correctly, please run gofmt to fix this." >&2 && exit 1; fi
+
     # Build the project
     - script:
         name: go build
         code: |
           go build ./...
+
+    # Runs static analysis
+    - script:
+        name: go vet
+        code: |
+          go vet ./...
 
     # Test the project
     - script:
