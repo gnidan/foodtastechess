@@ -43,3 +43,9 @@ build:
         name: go test
         code: |
           go test ./...
+
+  after-steps:
+      - sherzberg/slack-notify:
+          subdomain: wercker
+          token: $SLACK_TOKEN
+          channel: ops
