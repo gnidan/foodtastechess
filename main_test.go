@@ -16,7 +16,7 @@ func TestHello(t *testing.T) {
 		t.Errorf("Home page didn't return %v", http.StatusOK)
 	}
 
-	if w.Body.String() != "hello, world 2\n" {
+	if w.Body.String() != "hello, world\n" {
 		t.Errorf("Home page didn't return \"hello, world\", got: \"%s\"", w.Body.String())
 	}
 
