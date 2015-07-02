@@ -45,7 +45,5 @@ build:
           go test ./...
 
   after-steps:
-      - sherzberg/slack-notify:
-          subdomain: wercker
-          token: $SLACK_TOKEN
-          channel: ops
+        - wantedly/pretty-slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
