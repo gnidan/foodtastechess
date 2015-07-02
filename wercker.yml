@@ -3,7 +3,7 @@
 # If you want Google's container you would reference google/golang
 # Read more about containers on our dev center
 # http://devcenter.wercker.com/docs/containers/index.html
-box: golang
+box: google/golang
 # This is the build pipeline. Pipelines are the core of wercker
 # Read more about pipelines on our dev center
 # http://devcenter.wercker.com/docs/pipelines/index.html
@@ -16,6 +16,28 @@ box: golang
 
     # - mongodb
     # http://devcenter.wercker.com/docs/services/mongodb.html
+
+dev:
+  steps:
+    # Sets the go workspace and places you package
+    # at the right place in the workspace tree
+    - setup-go-workspace:
+      package-dir: foodtastechess
+
+    # Gets the dependencies
+    - script:
+        name: go get
+        code: |
+          go get
+
+    - internal/shell:
+        cmd: /bin/bash  #defaults to /bin/bash
+        code: |
+          # some code to automatically run in your shell session
+          # before you start interacting
+          cd /var/log
+
+
 build:
   # The steps that will be executed on build
   # Steps make up the actions in your pipeline
