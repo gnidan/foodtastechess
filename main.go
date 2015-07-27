@@ -2,19 +2,13 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
+
+	"foodtastechess/server"
 )
 
 func main() {
-	http.HandleFunc("/", hello)
-	fmt.Println("listening...")
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-	if err != nil {
-		panic(err)
-	}
-}
+	s := server.New()
 
-func hello(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(res, "hello, world")
+	s.Serve("0.0.0.0", os.Getenv("PORT"))
 }
