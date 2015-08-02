@@ -16,23 +16,6 @@ services:
      env:
        MYSQL_ROOT_PASSWORD: 2QMwv7EmagEYGt
 
-dev:
-  steps:
-    # Sets the go workspace and places you package
-    # at the right place in the workspace tree
-    - setup-go-workspace:
-        package-dir: foodtastechess
-
-    # Gets the dependencies
-    - script:
-        name: go get
-        code: |
-          go get
-
-    - internal/shell:
-        cmd: /bin/bash
-
-
 build:
   # The steps that will be executed on build
   # Steps make up the actions in your pipeline
@@ -41,7 +24,8 @@ build:
   steps:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
-    - setup-go-workspace
+    - setup-go-workspace:
+        package-dir: foodtastechess
 
     # Gets the dependencies
     - script:
