@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/spf13/viper"
 	"fmt"
+	"github.com/spf13/viper"
 
 	"foodtastechess/logger"
 )
