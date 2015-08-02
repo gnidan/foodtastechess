@@ -11,15 +11,9 @@ type Server struct {
 	listener *stoppableListener.StoppableListener
 }
 
-func New() *Server {
-	s := new(Server)
-
+func (s *Server) Serve(bindAddress string, port string) {
 	http.HandleFunc("/", hello)
 
-	return s
-}
-
-func (s *Server) Serve(bindAddress string, port string) {
 	address := fmt.Sprintf("%s:%s", bindAddress, port)
 	fmt.Println("listening at ", address)
 	listener, err := net.Listen("tcp", address)

@@ -1,11 +1,10 @@
 package main
 
 import (
-	//	"os"
-	"fmt"
 	"github.com/spf13/viper"
+	"fmt"
+	"github.com/facebookgo/inject"
 
-	//	"foodtastechess/server"
 	"foodtastechess/logger"
 )
 
