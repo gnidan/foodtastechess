@@ -9,7 +9,7 @@ import (
 )
 
 type App struct {
-	httpServer *server.Server `inject:""`
+	httpServer server.Server `inject:""`
 }
 
 func main() {
@@ -24,5 +24,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	a.httpServer.Serve("0.0.0.0", os.Getenv("PORT"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8181"
+	}
+	a.httpServer.Serve("0.0.0.0", port)
 }
