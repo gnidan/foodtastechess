@@ -10,6 +10,12 @@ import (
 	"foodtastechess/server"
 )
 
+// TestService is a placeholder struct that requires a bunch
+// of injected services.
+//
+// Used to test that the application is actually initializing
+// these services, and that if we provide a new dependent
+// component, it will be populated accordingly.
 type TestService struct {
 	HttpServer         *server.Server              `inject:"httpServer"`
 	ClientQueryService *queries.ClientQueryService `inject:"clientQueries"`
