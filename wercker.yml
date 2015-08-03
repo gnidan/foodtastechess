@@ -57,7 +57,7 @@ build:
     - script:
         name: go test
         code: |
-          go test ./...
+          go test -cover ./...
 
   after-steps:
         - slack-notifier:
