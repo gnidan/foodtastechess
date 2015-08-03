@@ -10,4 +10,11 @@ type Query struct {
 	TurnNumber game.TurnNumber
 }
 
+func TurnNumberQuery(id game.Id) Query {
+	return Query{
+		GameId:    id,
+		QueryType: "TurnNumber",
+	}
+}
+
 type Answer interface{}

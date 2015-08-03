@@ -3,7 +3,7 @@ package queries
 import (
 	"github.com/facebookgo/inject"
 	"github.com/stretchr/testify/assert"
-	//"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
 
@@ -17,14 +17,17 @@ var (
 
 type ClientQueriesTestSuite struct {
 	suite.Suite
-	ClientQueries ClientQueries `inject:"clientQueries"`
+	mockSystemQueries *MockSystemQueries
+	ClientQueries     ClientQueries `inject:"clientQueries"`
 }
 
 type MockSystemQueries struct {
+	mock.Mock
 }
 
 func (m *MockSystemQueries) GetAnswer(query Query) Answer {
-	return 5
+	args := m.Called(query)
+	return args.Get(0).(Answer)
 }
 
 func (suite *ClientQueriesTestSuite) SetupTest() {
@@ -46,12 +49,19 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 	if err = g.Populate(); err != nil {
 		log.Fatalf("Could not populate graph %v", err)
 	}
+
+	suite.mockSystemQueries = &systemQueries
 }
 
 func (suite *ClientQueriesTestSuite) TestExample() {
-	var expected game.TurnNumber
-	expected = 5
-	gameInfo := suite.ClientQueries.GameInformation(1)
+	var (
+		gameId   game.Id         = 1
+		expected game.TurnNumber = 5
+		query                    = TurnNumberQuery(gameId)
+	)
+	suite.mockSystemQueries.On("GetAnswer", query).Return(expected)
+
+	gameInfo := suite.ClientQueries.GameInformation(gameId)
 	assert.Equal(suite.T(), expected, gameInfo.TurnNumber)
 }
 
