@@ -50,7 +50,7 @@ func (app *App) initServices() {
 	app.addDependency("systemQueries", queries.NewSystemQueryService())
 
 	if err := app.graph.Populate(); err != nil {
-		log.Error("Could not populate graph (%v)", err)
+		log.Error(fmt.Sprintf("Could not populate graph (%v)", err))
 	}
 }
 
