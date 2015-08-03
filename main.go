@@ -59,6 +59,30 @@ func (app *App) initServices() {
 //
 // Each dependency requires a name and of course the service
 // itself.
+//
+// Dependency Injection Overview:
+//
+//   There are several components of our application.
+//
+//   Almost every component depends on some other component within
+//   the application.
+//
+//	 Development of different components cannot rely on
+//	 components being finished in order of dependency. i.e., each
+//	 component needs to be testably correct on its own.
+//
+//	 Dependency Injection provides a way for each component to
+//	 specify its dependencies without being concerned what they
+//	 are or where they came from.
+//
+//	 The application maintains a graph of connected components
+//	 and populates each component's dependencies at run-time,
+//	 once they are all accounted for.
+//
+//	 This facilitates testing through the use of mocked services
+//	 that conform to the dependent interfaces, but return values
+//   applicable to each test.
+//
 func (app *App) addDependency(name string, value interface{}) {
 	object := inject.Object{
 		Name:  name,
