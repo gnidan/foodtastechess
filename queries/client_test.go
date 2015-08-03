@@ -15,56 +15,92 @@ var (
 	log = logger.Log("client_test")
 )
 
+// ClientQueriesTestSuite is a collection of tests to ensure the correct
+// behavior of the Client Query Service (CQS.) The tests utilize a mocked
+// System Query Service (SQS) in order to test that the CQS is merely
+// aggregating results from the system.
 type ClientQueriesTestSuite struct {
 	suite.Suite
+
 	mockSystemQueries *MockSystemQueries
-	ClientQueries     ClientQueries `inject:"clientQueries"`
+	clientQueries     ClientQueries
 }
 
+// MockSystemQueries is a mock that we're going to use as a
+// SystemQueryInterface
 type MockSystemQueries struct {
 	mock.Mock
 }
 
+// GetAnswer records the call with Query and returns the pre-configured
+// mock answer
 func (m *MockSystemQueries) GetAnswer(query Query) Answer {
 	args := m.Called(query)
 	return args.Get(0).(Answer)
 }
 
+// SetupTest prepares the test suite for running by making a fake system
+// query service, providing it to a real client query service (the one we
+// are testing)
 func (suite *ClientQueriesTestSuite) SetupTest() {
 	var (
+		g inject.Graph
+
 		systemQueries MockSystemQueries
-		service       ClientQueryService
+		clientQueries ClientQueryService
 	)
 
-	var g inject.Graph
-	err := g.Provide(
-		&inject.Object{Value: suite},
+	// Set up the graph with:
+	//  - A real ClientQueryService (The one we are testing)
+	//  - The mocked SystemQueries implementation
+	if err := g.Provide(
+		&inject.Object{Name: "clientQueries", Value: &clientQueries},
 		&inject.Object{Name: "systemQueries", Value: &systemQueries},
-		&inject.Object{Name: "clientQueries", Value: &service},
-	)
-	if err != nil {
-		log.Fatalf("Could not provide objects to graph, %v", err)
+	); err != nil {
+		log.Fatalf("Could not provide values (%v)", err)
 	}
 
-	if err = g.Populate(); err != nil {
-		log.Fatalf("Could not populate graph %v", err)
+	// Populate the graph so that clientQueries knows to use our mocked
+	// systemQueries
+	if err := g.Populate(); err != nil {
+		log.Fatalf("Could not populate graph (%v)", err)
 	}
 
+	// Store references for use in tests
 	suite.mockSystemQueries = &systemQueries
+	suite.clientQueries = &clientQueries
 }
 
-func (suite *ClientQueriesTestSuite) TestExample() {
+// TestGameInformation tests the ClientQueries.GameInformation() method.
+//
+// GameInformation should query the SQS for the current turn number and
+// the board state at that turn, and return a GameInformation struct
+// with that information.
+func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	var (
-		gameId             game.Id         = 1
+		// the game ID we'll be using
+		gameId game.Id = 1
+
+		// pretend it's this turn
 		expectedTurnNumber game.TurnNumber = 5
-		expectedBoardState game.FEN        = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
-		turnNumberQuery    Query           = TurnNumberQuery(gameId)
-		boardStateQuery    Query           = BoardAtTurnQuery(gameId, expectedTurnNumber)
+
+		// in this board state
+		expectedBoardState game.FEN = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
+
+		// expected query objects we're looking for
+		turnNumberQuery Query = TurnNumberQuery(gameId)
+		boardStateQuery Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
 	)
+	// given our expected turn number query, return our pretend turn number
 	suite.mockSystemQueries.On("GetAnswer", turnNumberQuery).Return(expectedTurnNumber)
+
+	// given our expected board state query, return our pretend board state
 	suite.mockSystemQueries.On("GetAnswer", boardStateQuery).Return(expectedBoardState)
 
-	gameInfo := suite.ClientQueries.GameInformation(gameId)
+	// run the test call
+	gameInfo := suite.clientQueries.GameInformation(gameId)
+
+	// and expect that the game info we get back has the pretend values
 	assert.Equal(suite.T(), expectedTurnNumber, gameInfo.TurnNumber)
 	assert.Equal(suite.T(), expectedBoardState, gameInfo.BoardState)
 }
