@@ -3,25 +3,32 @@ package server
 import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"net/http"
-
-	"foodtastechess/logger"
 )
 
-var log = logger.Log("api")
+type chessApi struct {
+	restApi *rest.Api
+}
 
-func apiHandler() http.Handler {
-	api := rest.NewApi()
-	api.Use(rest.DefaultDevStack...)
+func newChessApi() *chessApi {
+	api := new(chessApi)
+	restApi := rest.NewApi()
+	restApi.Use(rest.DefaultDevStack...)
 	router, err := rest.MakeRouter(
 		rest.Get("/", hello),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	api.SetApp(router)
-	return api.MakeHandler()
+	restApi.SetApp(router)
+
+	api.restApi = restApi
+	return api
+}
+
+func (api *chessApi) handler() http.Handler {
+	return api.restApi.MakeHandler()
 }
 
 func hello(w rest.ResponseWriter, req *rest.Request) {
-	w.WriteJson(map[string]string{"Body": "Hello World!"})
+	w.WriteJson("hello, world")
 }

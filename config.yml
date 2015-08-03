@@ -1,4 +1,4 @@
-logger: 
+logger:
     noise: "loud"
-    level: "1"
+    level: "6"
     location: "stderr"

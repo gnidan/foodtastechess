@@ -18,8 +18,6 @@ func loggingConf() {
 	}
 	logger.InitLog(C)
 	log := logger.Log("main")
-	log.Debug("I did it")
-	log.Critical("Holy shit")
 }
 
 func readConf() {
