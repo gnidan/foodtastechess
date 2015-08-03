@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	g   inject.Graph
-	a   App
+	app *App
 	log *logging.Logger
 )
 
@@ -40,16 +39,17 @@ func readConf() {
 }
 
 type App struct {
+	graph      inject.Graph
 	HttpServer *server.Server `inject:"httpServer"`
 }
 
-func initServices() {
+func (app *App) initServices() {
 	httpServer := server.New()
 	clientQueryService := queries.NewClientQueryService()
 	systemQueryService := queries.NewSystemQueryService()
 
-	if err := g.Provide(
-		&inject.Object{Name: "app", Value: &a},
+	if err := app.graph.Provide(
+		&inject.Object{Name: "app", Value: app},
 		&inject.Object{Name: "httpServer", Value: httpServer},
 		&inject.Object{Name: "clientQueries", Value: clientQueryService},
 		&inject.Object{Name: "systemQueries", Value: systemQueryService},
@@ -57,23 +57,25 @@ func initServices() {
 		log.Fatalf("Could not provide values (%v)", err)
 	}
 
-	if err := g.Populate(); err != nil {
+	if err := app.graph.Populate(); err != nil {
 		log.Fatalf("Could not populate graph (%v)", err)
 	}
 }
 
 func main() {
+	app = new(App)
+
 	readConf()
 
 	log = logger.Log("main")
 	log.Notice("Starting foodtastechess")
 
 	log.Info("Initializing services")
-	initServices()
+	app.initServices()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8181"
 	}
-	a.HttpServer.Serve("0.0.0.0", port)
+	app.HttpServer.Serve("0.0.0.0", port)
 }
