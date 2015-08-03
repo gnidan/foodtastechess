@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"foodtastechess/logger"
+	"foodtastechess/queries"
 )
 
 var (
@@ -16,10 +17,17 @@ var (
 type Server struct {
 	listener *stoppableListener.StoppableListener
 	api      *chessApi
+
+	ClientQueries queries.ClientQueries `inject:"clientQueries"`
+}
+
+func New() *Server {
+	s := new(Server)
+	s.api = newChessApi()
+	return s
 }
 
 func (s *Server) Serve(bindAddress string, port string) {
-	s.api = newChessApi()
 	s.listen(bindAddress, port)
 
 	http.Serve(s.listener, s.api.handler())

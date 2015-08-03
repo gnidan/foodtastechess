@@ -19,6 +19,11 @@ type ClientQueryService struct {
 	SystemQueries SystemQueries `inject:"systemQueries"`
 }
 
+func NewClientQueryService() *ClientQueryService {
+	cqs := new(ClientQueryService)
+	return cqs
+}
+
 // GameInformation is a structural representation of the current
 // state of a game.
 type GameInformation struct {

@@ -3,11 +3,19 @@ package main
 import (
 	"fmt"
 	"github.com/facebookgo/inject"
+	"github.com/op/go-logging"
 	"github.com/spf13/viper"
 	"os"
 
 	"foodtastechess/logger"
+	"foodtastechess/queries"
 	"foodtastechess/server"
+)
+
+var (
+	g   inject.Graph
+	a   App
+	log *logging.Logger
 )
 
 func loggingConf() {
@@ -17,7 +25,6 @@ func loggingConf() {
 		panic(fmt.Errorf("Can't parse: %s \n", err))
 	}
 	logger.InitLog(C)
-	log := logger.Log("main")
 }
 
 func readConf() {
@@ -33,27 +40,40 @@ func readConf() {
 }
 
 type App struct {
-	httpServer server.Server `inject:""`
+	HttpServer *server.Server `inject:"httpServer"`
+}
+
+func initServices() {
+	httpServer := server.New()
+	clientQueryService := queries.NewClientQueryService()
+	systemQueryService := queries.NewSystemQueryService()
+
+	if err := g.Provide(
+		&inject.Object{Name: "app", Value: &a},
+		&inject.Object{Name: "httpServer", Value: httpServer},
+		&inject.Object{Name: "clientQueries", Value: clientQueryService},
+		&inject.Object{Name: "systemQueries", Value: systemQueryService},
+	); err != nil {
+		log.Fatalf("Could not provide values (%v)", err)
+	}
+
+	if err := g.Populate(); err != nil {
+		log.Fatalf("Could not populate graph (%v)", err)
+	}
 }
 
 func main() {
 	readConf()
 
-	var g inject.Graph
-	var a App
+	log = logger.Log("main")
+	log.Notice("Starting foodtastechess")
 
-	// Here the Populate call is creating instances of NameAPI &
-	// PlanetAPI, and setting the HTTPTransport on both to the
-	// http.DefaultTransport provided above:
-	if err := g.Populate(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	log.Info("Initializing services")
+	initServices()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8181"
 	}
-	a.httpServer.Serve("0.0.0.0", port)
-
+	a.HttpServer.Serve("0.0.0.0", port)
 }
