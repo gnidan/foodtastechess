@@ -44,21 +44,33 @@ type App struct {
 }
 
 func (app *App) initServices() {
-	httpServer := server.New()
-	clientQueryService := queries.NewClientQueryService()
-	systemQueryService := queries.NewSystemQueryService()
-
-	if err := app.graph.Provide(
-		&inject.Object{Name: "app", Value: app},
-		&inject.Object{Name: "httpServer", Value: httpServer},
-		&inject.Object{Name: "clientQueries", Value: clientQueryService},
-		&inject.Object{Name: "systemQueries", Value: systemQueryService},
-	); err != nil {
-		log.Fatalf("Could not provide values (%v)", err)
-	}
+	app.addDependency("app", app)
+	app.addDependency("httpServer", server.New())
+	app.addDependency("clientQueries", queries.NewClientQueryService())
+	app.addDependency("systemQueries", queries.NewSystemQueryService())
 
 	if err := app.graph.Populate(); err != nil {
-		log.Fatalf("Could not populate graph (%v)", err)
+		log.Error("Could not populate graph (%v)", err)
+	}
+}
+
+// addDependency is a private interface by which the application
+// can add services to its graph for injection.
+//
+// Each dependency requires a name and of course the service
+// itself.
+func (app *App) addDependency(name string, value interface{}) {
+	object := inject.Object{
+		Name:  name,
+		Value: value,
+	}
+
+	if err := app.graph.Provide(&object); err != nil {
+		log.Fatalf(
+			"Could not provide value for name %s, got err: %v",
+			name,
+			err,
+		)
 	}
 }
 
