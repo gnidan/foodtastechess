@@ -17,4 +17,12 @@ func TurnNumberQuery(id game.Id) Query {
 	}
 }
 
+func BoardAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
+	return Query{
+		GameId:     id,
+		QueryType:  "BoardAtTurn",
+		TurnNumber: turnNumber,
+	}
+}
+
 type Answer interface{}

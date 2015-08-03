@@ -55,14 +55,18 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 
 func (suite *ClientQueriesTestSuite) TestExample() {
 	var (
-		gameId   game.Id         = 1
-		expected game.TurnNumber = 5
-		query                    = TurnNumberQuery(gameId)
+		gameId             game.Id         = 1
+		expectedTurnNumber game.TurnNumber = 5
+		expectedBoardState game.FEN        = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
+		turnNumberQuery    Query           = TurnNumberQuery(gameId)
+		boardStateQuery    Query           = BoardAtTurnQuery(gameId, expectedTurnNumber)
 	)
-	suite.mockSystemQueries.On("GetAnswer", query).Return(expected)
+	suite.mockSystemQueries.On("GetAnswer", turnNumberQuery).Return(expectedTurnNumber)
+	suite.mockSystemQueries.On("GetAnswer", boardStateQuery).Return(expectedBoardState)
 
 	gameInfo := suite.ClientQueries.GameInformation(gameId)
-	assert.Equal(suite.T(), expected, gameInfo.TurnNumber)
+	assert.Equal(suite.T(), expectedTurnNumber, gameInfo.TurnNumber)
+	assert.Equal(suite.T(), expectedBoardState, gameInfo.BoardState)
 }
 
 func TestClientQueriesTestSuite(t *testing.T) {
