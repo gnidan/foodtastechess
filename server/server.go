@@ -12,8 +12,6 @@ type Server struct {
 }
 
 func (s *Server) Serve(bindAddress string, port string) {
-	http.HandleFunc("/", hello)
-
 	address := fmt.Sprintf("%s:%s", bindAddress, port)
 	fmt.Println("listening at ", address)
 	listener, err := net.Listen("tcp", address)
@@ -26,9 +24,6 @@ func (s *Server) Serve(bindAddress string, port string) {
 		panic("Could not rebind new listener")
 	}
 
-	http.Serve(s.listener, nil)
-}
-
-func hello(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(res, "hello, world")
+	handler := apiHandler()
+	http.Serve(s.listener, handler)
 }
