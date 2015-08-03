@@ -91,10 +91,9 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		turnNumberQuery Query = TurnNumberQuery(gameId)
 		boardStateQuery Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
 	)
-	// given our expected turn number query, return our pretend turn number
-	suite.mockSystemQueries.On("GetAnswer", turnNumberQuery).Return(expectedTurnNumber)
 
-	// given our expected board state query, return our pretend board state
+	// given our expected queries, return our respective expected results
+	suite.mockSystemQueries.On("GetAnswer", turnNumberQuery).Return(expectedTurnNumber)
 	suite.mockSystemQueries.On("GetAnswer", boardStateQuery).Return(expectedBoardState)
 
 	// run the test call
