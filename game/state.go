@@ -1,4 +1,4 @@
-package main
+package game
 
 type GameState struct{
 	pieceMap [Position]Piece
