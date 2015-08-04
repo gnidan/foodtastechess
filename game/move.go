@@ -7,115 +7,113 @@ package game
 //EnPassantMove - Unique to Pawns: en passant
 //CastlingMove - Unique to Rook, King (need for others???) - Castling
 
-type Move interface{
+type Move interface {
 	Translate(pos Position, s *GameState) []Position
 }
 
-type BoundMove struct{
+type BoundMove struct {
 	rankOffset, fileOffset int
 }
 
-type UnboundMove struct{
+type UnboundMove struct {
 	rankOffset, fileOffset int
 }
 
-type AdvancingMove struct{
+type AdvancingMove struct {
 	rankDelta int //white will move +1, black -1
 }
 
-type CapturingMove struct{
+type CapturingMove struct {
 	rankOffset, fileOffset int
 }
 
-type EnPassantMove struct{
+type EnPassantMove struct {
 	rankOffset, fileOffset int
 }
 
-type CastlingMove struct{
+type CastlingMove struct {
 	//TODO
 }
 
-func (s *GameState) ValidMoves(pos Position) []Position{
-	validMoves := []Position{}  //make empty array of positions
+func (s *GameState) ValidMoves(pos Position) []Position {
+	validMoves := []Position{} //make empty array of positions
 	piece := s.PieceAtPosition(pos)
-	if piece == nil{ //no piece at position
+	if piece == nil { //no piece at position
 		return nil
 	}
 	moves := piece.Moves()
 	for _, move := range moves {
-		validMoves = append(validMoves, move.Translate(pos, s)... )
+		validMoves = append(validMoves, move.Translate(pos, s)...)
 	}
 	return validMoves
 }
 
-
-func (m *BoundMove) Translate(pos Position, s *GameState) []Position{
-    newPos := Position{
+func (m *BoundMove) Translate(pos Position, s *GameState) []Position {
+	newPos := Position{
 		rank: pos.rank + m.rankOffset,
 		file: pos.file + m.fileOffset,
-		}
+	}
 	//if there is no piece there, or piece is other color
-    if s.PieceAtPosition(newPos) == nil || s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
-        return []Position{newPos}
-    }
-	return nil
-}
-
-func (m *UnboundMove) Translate(pos Position, s *GameState) []Position{
-    newPos := Position{
-		rank: pos.rank + m.rankOffset,
-		file: pos.file + m.fileOffset,
-		}
-    if s.PieceAtPosition(newPos) == nil {
-        //return [newPos].append(m.Translate(newPos, s))
-    }else if s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
+	if s.PieceAtPosition(newPos) == nil || s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
 		return []Position{newPos}
 	}
 	return nil
 }
 
-func (m *AdvancingMove) Translate(pos Position, s *GameState) []Position{
-    newPos := Position{
+func (m *UnboundMove) Translate(pos Position, s *GameState) []Position {
+	newPos := Position{
+		rank: pos.rank + m.rankOffset,
+		file: pos.file + m.fileOffset,
+	}
+	if s.PieceAtPosition(newPos) == nil {
+		//return [newPos].append(m.Translate(newPos, s))
+	} else if s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
+		return []Position{newPos}
+	}
+	return nil
+}
+
+func (m *AdvancingMove) Translate(pos Position, s *GameState) []Position {
+	newPos := Position{
 		rank: pos.rank + m.rankDelta,
 		file: pos.file,
-		}
-    if s.PieceAtPosition(newPos) == nil {
-        return []Position{newPos}
-    }
+	}
+	if s.PieceAtPosition(newPos) == nil {
+		return []Position{newPos}
+	}
 	return nil
 }
 
-func (m *CapturingMove) Translate(pos Position, s *GameState) []Position{
-    newPos := Position{
+func (m *CapturingMove) Translate(pos Position, s *GameState) []Position {
+	newPos := Position{
 		rank: pos.rank + m.rankOffset,
 		file: pos.file + m.fileOffset,
-		}
-    if s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
-        return []Position{newPos}
-    }
+	}
+	if s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
+		return []Position{newPos}
+	}
 	return nil
 }
 
-func (m *EnPassantMove) Translate(pos Position, s *GameState) []Position{
-    newPos := Position{
+func (m *EnPassantMove) Translate(pos Position, s *GameState) []Position {
+	newPos := Position{
 		rank: pos.rank + m.rankOffset,
 		file: pos.file + m.fileOffset,
-		}
+	}
 	oppPosition := Position{
 		rank: pos.rank,
 		file: pos.file + m.fileOffset,
-		}
-    if s.PieceAtPosition(newPos) == nil && s.PieceAtPosition(oppPosition).Color() != s.PieceAtPosition(pos).Color() {
-        //Other checks for valid en passant
-		if 0==1{
+	}
+	if s.PieceAtPosition(newPos) == nil && s.PieceAtPosition(oppPosition).Color() != s.PieceAtPosition(pos).Color() {
+		//Other checks for valid en passant
+		if 0 == 1 {
 			return []Position{newPos}
 		}
-    }
-    return nil
-}
-
-func (m *CastlingMove) Translate(pos Position, s *GameState) []Position{
-    //TODO
+	}
 	return nil
 }
 
+func (m *CastlingMove) Translate(pos Position, s *GameState) []Position {
+	//TODO
+	return nil
+}
