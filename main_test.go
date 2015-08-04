@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 
+	"foodtastechess/graph"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
@@ -21,18 +22,26 @@ type TestService struct {
 	SystemQueryService *queries.SystemQueryService `inject:"systemQueries"`
 }
 
+func (s *TestService) PreInit(provide graph.Provider) error {
+	return nil
+}
+
+func (s *TestService) Init() error {
+	return nil
+}
+
 // TestServices sets up a TestService struct that gets provided
 // to the graph in order to be injected with the various
 // services we expect to be initialized by the app
 func TestServices(t *testing.T) {
 	log = logger.Log("main_test")
 
-	app = new(App)
+	app = newApp()
 
 	var service TestService
-	app.addDependency("testService", &service)
+	app.graph.Add("testService", &service)
 
-	app.initServices()
+	app.Init()
 
 	assert := assert.New(t)
 
