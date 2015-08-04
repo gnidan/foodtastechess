@@ -1,16 +1,16 @@
 package game
 
-type GameState struct{
+type GameState struct {
 	pieceMap map[Position]Piece
 }
 
-type Position struct{
+type Position struct {
 	file, rank int
 }
 
-func (s *GameState) PieceAtPosition(pos Position) Piece{
+func (s *GameState) PieceAtPosition(pos Position) Piece {
 	piece, ok := s.pieceMap[pos]
-	if( ok ){
+	if ok {
 		//piece found
 		return piece
 	}
