@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 
-	"foodtastechess/graph"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 )
@@ -26,14 +25,6 @@ func New() *Server {
 	s := new(Server)
 	s.api = newChessApi()
 	return s
-}
-
-func (s *Server) PreInit(provide graph.Provider) error {
-	return nil
-}
-
-func (s *Server) Init() error {
-	return nil
 }
 
 func (s *Server) Serve(bindAddress string, port string) {

@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 
+	"foodtastechess/common"
 	"foodtastechess/graph"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
@@ -54,15 +55,15 @@ func newApp() *App {
 	return app
 }
 
-func (app *App) PreInit(provide graph.Provider) error {
-	services := map[string]graph.Object{
+func (app *App) PreInit(provide common.Provider) error {
+	services := map[string](interface{}){
 		"httpServer":    server.New(),
 		"clientQueries": queries.NewClientQueryService(),
 		"systemQueries": queries.NewSystemQueryService(),
 	}
 
-	for name, object := range services {
-		err := provide(name, object)
+	for name, value := range services {
+		err := provide(name, value)
 		if err != nil {
 			return err
 		}
@@ -73,11 +74,7 @@ func (app *App) PreInit(provide graph.Provider) error {
 
 func (app *App) Init() error {
 	err := app.graph.Populate()
-	if err != nil {
-		return err
-	}
-
-	return app.HttpServer.Init()
+	return err
 }
 
 func main() {

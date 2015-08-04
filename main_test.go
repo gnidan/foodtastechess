@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"foodtastechess/graph"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
@@ -20,14 +19,6 @@ type TestService struct {
 	HttpServer         *server.Server              `inject:"httpServer"`
 	ClientQueryService *queries.ClientQueryService `inject:"clientQueries"`
 	SystemQueryService *queries.SystemQueryService `inject:"systemQueries"`
-}
-
-func (s *TestService) PreInit(provide graph.Provider) error {
-	return nil
-}
-
-func (s *TestService) Init() error {
-	return nil
 }
 
 // TestServices sets up a TestService struct that gets provided

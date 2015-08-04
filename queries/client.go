@@ -2,7 +2,6 @@ package queries
 
 import (
 	"foodtastechess/game"
-	"foodtastechess/graph"
 )
 
 // ClientQueries is the interface by which other parts of the system
@@ -23,14 +22,6 @@ type ClientQueryService struct {
 func NewClientQueryService() *ClientQueryService {
 	cqs := new(ClientQueryService)
 	return cqs
-}
-
-func (s *ClientQueryService) PreInit(provide graph.Provider) error {
-	return nil
-}
-
-func (s *ClientQueryService) Init() error {
-	return nil
 }
 
 // GameInformation is a structural representation of the current
