@@ -1,13 +1,13 @@
 package queries
 
 import (
-	"github.com/facebookgo/inject"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
 
 	"foodtastechess/game"
+	"foodtastechess/graph"
 	"foodtastechess/logger"
 )
 
@@ -44,7 +44,7 @@ func (m *MockSystemQueries) GetAnswer(query Query) Answer {
 // are testing)
 func (suite *ClientQueriesTestSuite) SetupTest() {
 	var (
-		g inject.Graph
+		g graph.Graph
 
 		systemQueries MockSystemQueries
 		clientQueries ClientQueryService
@@ -53,12 +53,9 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 	// Set up the graph with:
 	//  - A real ClientQueryService (The one we are testing)
 	//  - The mocked SystemQueries implementation
-	if err := g.Provide(
-		&inject.Object{Name: "clientQueries", Value: &clientQueries},
-		&inject.Object{Name: "systemQueries", Value: &systemQueries},
-	); err != nil {
-		log.Fatalf("Could not provide values (%v)", err)
-	}
+	g = graph.New()
+	g.Add("clientQueries", &clientQueries)
+	g.Add("systemQueries", &systemQueries)
 
 	// Populate the graph so that clientQueries knows to use our mocked
 	// systemQueries
