@@ -14,7 +14,7 @@ type Directory interface {
 func New() Directory {
 	directory := new(graphDirectory)
 
-	directory.graph = NewGraph()
+	directory.graph = newGraph()
 	directory.services = make(map[string]lifecycleService)
 	directory.populated = false
 
@@ -22,7 +22,7 @@ func New() Directory {
 }
 
 type graphDirectory struct {
-	graph     Graph
+	graph     graph
 	services  map[string]lifecycleService
 	populated bool
 }
@@ -34,7 +34,7 @@ type lifecycleService interface {
 
 func (d *graphDirectory) AddService(name string, service interface{}) error {
 	d.populated = false
-	err := d.graph.Add(name, service)
+	err := d.graph.add(name, service)
 
 	if service, matches := service.(lifecycleService); matches {
 		d.services[name] = service
@@ -45,7 +45,7 @@ func (d *graphDirectory) AddService(name string, service interface{}) error {
 
 func (d *graphDirectory) Start(names ...string) error {
 	if !d.populated {
-		err := d.graph.Populate()
+		err := d.graph.populate()
 		if err != nil {
 			return err
 		}

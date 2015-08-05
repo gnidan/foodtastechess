@@ -6,9 +6,9 @@ import (
 	"foodtastechess/common"
 )
 
-type Graph interface {
-	Add(name string, value interface{}) error
-	Populate() error
+type graph interface {
+	add(name string, value interface{}) error
+	populate() error
 }
 
 type objectPreProvide interface {
@@ -22,15 +22,15 @@ type injectGraph struct {
 	graph inject.Graph
 }
 
-func NewGraph() Graph {
+func newGraph() graph {
 	return new(injectGraph)
 }
 
-func (g *injectGraph) Add(name string, value interface{}) error {
+func (g *injectGraph) add(name string, value interface{}) error {
 	object, ok := value.(objectPreProvide)
 
 	if ok {
-		if err := object.PreProvide(g.Add); err != nil {
+		if err := object.PreProvide(g.add); err != nil {
 			return err
 		}
 	}
@@ -45,7 +45,7 @@ func (g *injectGraph) Add(name string, value interface{}) error {
 	return nil
 }
 
-func (g *injectGraph) Populate() error {
+func (g *injectGraph) populate() error {
 	if err := g.graph.Populate(); err != nil {
 		return err
 	}
