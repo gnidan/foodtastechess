@@ -12,18 +12,24 @@ import (
 	"foodtastechess/directory"
 )
 
+// MockUsers mocks the users service for us
 type MockUsers struct {
 	mock.Mock
 }
 
 func (m *MockUsers) Get(id Id) (User, bool) {
-	return User{}, false
+	args := m.Called(id)
+	return args.Get(0).(User), args.Bool(1)
 }
 
 func (m *MockUsers) Save(user User) error {
-	return nil
+	args := m.Called(user)
+	return args.Error(0)
 }
 
+// AuthTestSuite provides a setup by which to test the behavior
+// of the AuthService. It mocks the users service and uses
+// a fake AuthConfig.
 type AuthTestSuite struct {
 	suite.Suite
 
@@ -69,6 +75,7 @@ func (suite *AuthTestSuite) TestBeginAuth() {
 	)
 }
 
+// TestAuth kicks off the AuthTestSuite
 func TestAuth(t *testing.T) {
 	suite.Run(t, new(AuthTestSuite))
 }
