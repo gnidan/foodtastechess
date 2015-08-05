@@ -2,8 +2,6 @@ package directory
 
 import (
 	"github.com/facebookgo/inject"
-
-	"foodtastechess/common"
 )
 
 type graph interface {
@@ -12,7 +10,7 @@ type graph interface {
 }
 
 type objectPreProvide interface {
-	PreProvide(provide common.Provider) error
+	PreProvide(provide Provider) error
 }
 type objectPostPopulate interface {
 	PostPopulate() error

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"foodtastechess/common"
+	"foodtastechess/directory"
 	"foodtastechess/logger"
 )
 
@@ -24,7 +24,7 @@ func New() *Server {
 	return new(Server)
 }
 
-func (s *Server) PreProvide(provide common.Provider) error {
+func (s *Server) PreProvide(provide directory.Provider) error {
 	err := provide("chessApi", newChessApi())
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))

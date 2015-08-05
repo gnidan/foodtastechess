@@ -21,6 +21,8 @@ func New() Directory {
 	return directory
 }
 
+type Provider func(name string, value interface{}) error
+
 type graphDirectory struct {
 	graph     graph
 	services  map[string]lifecycleService
