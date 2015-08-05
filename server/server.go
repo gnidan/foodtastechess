@@ -5,9 +5,10 @@ import (
 	"github.com/hydrogen18/stoppableListener"
 	"net"
 	"net/http"
+	"os"
 
+	"foodtastechess/common"
 	"foodtastechess/logger"
-	"foodtastechess/queries"
 )
 
 var (
@@ -16,21 +17,47 @@ var (
 
 type Server struct {
 	listener *stoppableListener.StoppableListener
-	api      *chessApi
-
-	ClientQueries queries.ClientQueries `inject:"clientQueries"`
+	Api      *chessApi `inject:"chessApi"`
 }
 
 func New() *Server {
-	s := new(Server)
-	s.api = newChessApi()
-	return s
+	return new(Server)
 }
 
-func (s *Server) Serve(bindAddress string, port string) {
+func (s *Server) PreProvide(provide common.Provider) error {
+	err := provide("chessApi", newChessApi())
+	if err != nil {
+		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))
+	}
+	return err
+}
+
+func (s *Server) PostPopulate() error {
+	s.Api.init()
+	return nil
+}
+
+func (s *Server) Start() error {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8181"
+	}
+
+	s.serve("0.0.0.0", port)
+	return nil
+}
+
+func (s *Server) Stop() error {
+	s.listener.Stop()
+	return nil
+}
+
+func (s *Server) serve(bindAddress string, port string) {
 	s.listen(bindAddress, port)
 
-	http.Serve(s.listener, s.api.handler())
+	http.Handle("/", s.Api.handler())
+
+	go http.Serve(s.listener, nil)
 }
 
 func (s *Server) listen(bindAddress string, port string) {

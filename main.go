@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
-	"os"
 
-	"foodtastechess/common"
-	"foodtastechess/graph"
+	"foodtastechess/directory"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
@@ -40,22 +38,19 @@ func readConf() {
 }
 
 type App struct {
-	graph      graph.Graph
+	directory  directory.Directory
 	HttpServer *server.Server `inject:"httpServer"`
 }
 
-func newApp() *App {
+func NewApp() *App {
 	app := new(App)
-
-	g := graph.New()
-	g.Add("app", app)
-
-	app.graph = g
-
+	app.directory = directory.New()
 	return app
 }
 
-func (app *App) PreInit(provide common.Provider) error {
+func (app *App) LoadServices() {
+	var err error
+
 	services := map[string](interface{}){
 		"httpServer":    server.New(),
 		"clientQueries": queries.NewClientQueryService(),
@@ -63,34 +58,43 @@ func (app *App) PreInit(provide common.Provider) error {
 	}
 
 	for name, value := range services {
-		err := provide(name, value)
+		err = app.directory.AddService(name, value)
 		if err != nil {
-			return err
+			msg := fmt.Sprintf("Adding %s service failed: %v", name, err)
+			log.Error(msg)
 		}
 	}
 
-	return nil
+	err = app.directory.Start()
+	if err != nil {
+		msg := fmt.Sprintf("Could not start directory: %v", err)
+		log.Error(msg)
+		return
+	}
 }
 
-func (app *App) Init() error {
-	err := app.graph.Populate()
-	return err
+func (app *App) Start() {
+	err := app.directory.Start("httpServer")
+	if err != nil {
+		msg := fmt.Sprintf("Could not start HTTP Server: %v", err)
+		log.Error(msg)
+		return
+	}
 }
 
 func main() {
-	app = newApp()
-
 	readConf()
 
 	log = logger.Log("main")
+
+	app = NewApp()
+
+	log.Notice("Loading Services")
+	app.LoadServices()
+
 	log.Notice("Starting foodtastechess")
+	app.Start()
 
-	log.Info("Initializing App")
-	app.Init()
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8181"
+	for {
 	}
-	app.HttpServer.Serve("0.0.0.0", port)
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 
+	"foodtastechess/directory"
 	"foodtastechess/game"
-	"foodtastechess/graph"
 	"foodtastechess/logger"
 )
 
@@ -44,23 +44,23 @@ func (m *MockSystemQueries) GetAnswer(query Query) Answer {
 // are testing)
 func (suite *ClientQueriesTestSuite) SetupTest() {
 	var (
-		g graph.Graph
+		d directory.Directory
 
 		systemQueries MockSystemQueries
 		clientQueries ClientQueryService
 	)
 
-	// Set up the graph with:
+	// Set up a directory with:
 	//  - A real ClientQueryService (The one we are testing)
 	//  - The mocked SystemQueries implementation
-	g = graph.New()
-	g.Add("clientQueries", &clientQueries)
-	g.Add("systemQueries", &systemQueries)
+	d = directory.New()
+	d.AddService("clientQueries", &clientQueries)
+	d.AddService("systemQueries", &systemQueries)
 
-	// Populate the graph so that clientQueries knows to use our mocked
+	// Populate the directory so that clientQueries knows to use our mocked
 	// systemQueries
-	if err := g.Populate(); err != nil {
-		log.Fatalf("Could not populate graph (%v)", err)
+	if err := d.Start(); err != nil {
+		log.Fatalf("Could not start directory (%v)", err)
 	}
 
 	// Store references for use in tests
