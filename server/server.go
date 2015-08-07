@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"github.com/codegangsta/negroni"
-	"github.com/gorilla/mux"
 	"gopkg.in/tylerb/graceful.v1"
 	"net"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 
 	"foodtastechess/directory"
 	"foodtastechess/logger"
+	"foodtastechess/server/api"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 
 type Server struct {
 	server   *graceful.Server
-	Api      *chessApi      `inject:"chessApi"`
+	Api      *api.ChessApi  `inject:"chessApi"`
 	Auth     Authentication `inject:"auth"`
 	Config   ServerConfig   `inject:"serverConfig"`
 	StopChan chan bool      `inject:"stopChan"`
@@ -34,7 +34,7 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 		BindAddress: "0.0.0.0:8181",
 	})
 
-	err := provide("chessApi", newChessApi())
+	err := provide("chessApi", api.New())
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))
 		return err
@@ -47,21 +47,10 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 	return err
 }
 
-func (s *Server) PostPopulate() error {
-	return nil
-}
-
 func (s *Server) Start() error {
-	router := mux.NewRouter()
-
-	router.HandleFunc("/auth/callback", s.Auth.CompleteAuthHandler)
-	router.Handle("/api", negroni.New(
-		s.Auth.LoginRequired(),
-		s.Api.handler(),
-	))
-
 	n := negroni.Classic()
-	n.UseHandler(router)
+	n.Use(s.Auth.LoginRequired())
+	n.UseHandler(s.Api.Handler())
 
 	s.server = &graceful.Server{
 		Timeout: 10 * time.Second,

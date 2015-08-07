@@ -69,6 +69,11 @@ func (s *AuthService) PostPopulate() error {
 
 func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+		if req.URL.Path == "/auth/callback" {
+			s.CompleteAuthHandler(res, req)
+			return
+		}
+
 		session := GetSession(s.SessionConfig, res, req)
 		marshalledAuth, ok := session.Get(s.Config.SessionKey).(string)
 
