@@ -3,12 +3,10 @@ package api
 import (
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
-	"github.com/gorilla/context"
 	"net/http"
 
 	"foodtastechess/logger"
 	"foodtastechess/queries"
-	"foodtastechess/server/auth"
 	"foodtastechess/user"
 )
 
@@ -27,6 +25,7 @@ func New() *ChessApi {
 func (api *ChessApi) PostPopulate() error {
 	restApi := rest.NewApi()
 	restApi.Use(rest.DefaultDevStack...)
+	restApi.Use(authMiddleware)
 	router, err := rest.MakeRouter(
 		rest.Get("/games", api.GetGames),
 	)
@@ -47,8 +46,10 @@ func (api *ChessApi) Handler() http.Handler {
 }
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
-	httpReq := req.Request
-	u := context.Get(httpReq, auth.ContextKey).(user.User)
-
+	u := getUser(req)
 	res.WriteJson(fmt.Sprintf("Hello, %s!", u.NickName))
+}
+
+func getUser(req *rest.Request) user.User {
+	return req.Env["user"].(user.User)
 }
