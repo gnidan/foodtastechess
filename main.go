@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
+	"os"
+	"os/signal"
 
 	"foodtastechess/directory"
 	"foodtastechess/logger"
@@ -52,7 +54,7 @@ func NewApp() *App {
 func (app *App) LoadServices() {
 	var err error
 
-	app.StopChan = make(chan bool)
+	app.StopChan = make(chan bool, 1)
 
 	services := map[string](interface{}){
 		"httpServer":    server.New(),
@@ -87,6 +89,15 @@ func (app *App) Start() {
 	}
 }
 
+func (app *App) Stop() {
+	err := app.directory.Stop("httpServer")
+	if err != nil {
+		msg := fmt.Sprintf("Could not stop HTTP Server: %v", err)
+		log.Error(msg)
+		return
+	}
+}
+
 func main() {
 	readConf()
 
@@ -100,5 +111,17 @@ func main() {
 	log.Notice("Starting foodtastechess")
 	app.Start()
 
-	<-app.StopChan
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	for {
+		select {
+		case <-app.StopChan:
+			log.Notice("Quitting.")
+			return
+		case <-c:
+			fmt.Println("")
+			app.Stop()
+		}
+	}
 }

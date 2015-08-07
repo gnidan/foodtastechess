@@ -78,7 +78,8 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop() error {
-	s.server.Stop(10 * time.Second)
+	log.Notice("Stopping server")
+	s.server.Stop(1 * time.Second)
 	s.StopChan <- true
 	return nil
 }
