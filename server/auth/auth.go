@@ -74,13 +74,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 
 		if !ok {
 			log.Debug("No session found, creating one.")
-			authSession, err := s.provider.BeginAuth(getState(req))
-			if err != nil {
-				log.Error(fmt.Sprintf("Error creating auth session: %v", err))
-				return
-			}
-			sess.Save(s.Config.SessionKey, authSession.Marshal())
-			s.loginRedirect(res, req, authSession)
+			s.startAuth(res, req, sess)
 			return
 		}
 
@@ -98,7 +92,12 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			log.Error(fmt.Sprintf("Error fetching user: %v", err))
 		}
-		log.Debug("User: %v", guser)
+
+		if guser.RawData["error"] != nil {
+			log.Debug("No access token found, starting auth over")
+			s.startAuth(res, req, sess)
+			return
+		}
 
 		u := user.User{
 			Id:        user.Id(guser.UserID),
@@ -110,6 +109,17 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 
 		next(res, req)
 	}
+}
+
+func (s *AuthService) startAuth(res http.ResponseWriter, req *http.Request, sess session.Session) {
+	authSession, err := s.provider.BeginAuth(getState(req))
+	if err != nil {
+		log.Error(fmt.Sprintf("Error creating auth session: %v", err))
+		return
+	}
+	sess.Save(s.Config.SessionKey, authSession.Marshal())
+	s.loginRedirect(res, req, authSession)
+
 }
 
 func (s *AuthService) loginRedirect(res http.ResponseWriter, req *http.Request, authSession goth.Session) {
