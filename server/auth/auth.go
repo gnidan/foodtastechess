@@ -1,18 +1,21 @@
-package server
+package auth
 
 import (
 	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/gplus"
 	"net/http"
 	"net/url"
 
 	"foodtastechess/directory"
+	"foodtastechess/logger"
+	"foodtastechess/server/session"
 	"foodtastechess/user"
 )
+
+var log = logger.Log("auth")
 
 type Authentication interface {
 	CompleteAuthHandler(res http.ResponseWriter, req *http.Request)
@@ -20,15 +23,14 @@ type Authentication interface {
 }
 
 type AuthService struct {
-	Config        AuthConfig    `inject:"authConfig"`
-	SessionConfig SessionConfig `inject:"sessionConfig"`
-	Users         user.Users    `inject:"users"`
+	Config        AuthConfig            `inject:"authConfig"`
+	SessionConfig session.SessionConfig `inject:"sessionConfig"`
+	Users         user.Users            `inject:"users"`
 
-	sessionStore sessions.Store
-	provider     goth.Provider
+	provider goth.Provider
 }
 
-func NewAuthentication() Authentication {
+func New() Authentication {
 	return new(AuthService)
 }
 
@@ -39,14 +41,7 @@ func (s *AuthService) PreProvide(provider directory.Provider) error {
 		CallbackUrl:  "http://local.drama9.com:8181/auth/callback",
 		SessionKey:   "auth",
 	})
-	if err != nil {
-		return err
-	}
 
-	err = provider("sessionConfig", SessionConfig{
-		SessionName: "ftc_session",
-		Secret:      "secret_123",
-	})
 	return err
 }
 
@@ -74,8 +69,8 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 			return
 		}
 
-		session := GetSession(s.SessionConfig, res, req)
-		marshalledAuth, ok := session.Get(s.Config.SessionKey).(string)
+		sess := session.GetSession(s.SessionConfig, res, req)
+		marshalledAuth, ok := sess.Get(s.Config.SessionKey).(string)
 
 		if !ok {
 			log.Debug("No session found, creating one.")
@@ -84,7 +79,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 				log.Error(fmt.Sprintf("Error creating auth session: %v", err))
 				return
 			}
-			session.Save(s.Config.SessionKey, authSession.Marshal())
+			sess.Save(s.Config.SessionKey, authSession.Marshal())
 			s.loginRedirect(res, req, authSession)
 			return
 		}
@@ -111,7 +106,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 			AvatarUrl: guser.AvatarURL,
 		}
 
-		context.Set(req, authContextKey, u)
+		context.Set(req, ContextKey, u)
 
 		next(res, req)
 	}
@@ -127,8 +122,8 @@ func (s *AuthService) loginRedirect(res http.ResponseWriter, req *http.Request, 
 }
 
 func (s *AuthService) CompleteAuthHandler(res http.ResponseWriter, req *http.Request) {
-	session := GetSession(s.SessionConfig, res, req)
-	marshalledAuth, ok := session.Get(s.Config.SessionKey).(string)
+	sess := session.GetSession(s.SessionConfig, res, req)
+	marshalledAuth, ok := sess.Get(s.Config.SessionKey).(string)
 	if !ok {
 		res.WriteHeader(http.StatusBadRequest)
 		log.Error("No session found")
@@ -148,7 +143,7 @@ func (s *AuthService) CompleteAuthHandler(res http.ResponseWriter, req *http.Req
 		log.Debug("Could not authorize request, got: %v", err)
 	}
 
-	session.Save(s.Config.SessionKey, authSession.Marshal())
+	sess.Save(s.Config.SessionKey, authSession.Marshal())
 
 	guser, _ := s.provider.FetchUser(authSession)
 	log.Debug("User: %v", guser)

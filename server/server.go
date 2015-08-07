@@ -11,6 +11,8 @@ import (
 	"foodtastechess/directory"
 	"foodtastechess/logger"
 	"foodtastechess/server/api"
+	"foodtastechess/server/auth"
+	"foodtastechess/server/session"
 )
 
 var (
@@ -19,10 +21,10 @@ var (
 
 type Server struct {
 	server   *graceful.Server
-	Api      *api.ChessApi  `inject:"chessApi"`
-	Auth     Authentication `inject:"auth"`
-	Config   ServerConfig   `inject:"serverConfig"`
-	StopChan chan bool      `inject:"stopChan"`
+	Api      *api.ChessApi       `inject:"chessApi"`
+	Auth     auth.Authentication `inject:"auth"`
+	Config   ServerConfig        `inject:"serverConfig"`
+	StopChan chan bool           `inject:"stopChan"`
 }
 
 func New() *Server {
@@ -40,7 +42,15 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 		return err
 	}
 
-	err = provide("auth", NewAuthentication())
+	err = provide("sessionConfig", session.SessionConfig{
+		SessionName: "ftc_session",
+		Secret:      "secret_123",
+	})
+	if err != nil {
+		log.Error(fmt.Sprintf("Could not provide session config: %v", err))
+	}
+
+	err = provide("auth", auth.New())
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not provide auth service: %v", err))
 	}
@@ -48,7 +58,9 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 }
 
 func (s *Server) Start() error {
-	n := negroni.Classic()
+	n := negroni.New()
+	n.Use(negroni.NewRecovery())
+	n.Use(NewLogger())
 	n.Use(s.Auth.LoginRequired())
 	n.UseHandler(s.Api.Handler())
 
