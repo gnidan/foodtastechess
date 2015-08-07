@@ -32,8 +32,6 @@ func New() *Server {
 func (s *Server) PreProvide(provide directory.Provider) error {
 	provide("serverConfig", ServerConfig{
 		BindAddress: "0.0.0.0:8181",
-		AppSecret:   "secret12345",
-		SessionName: "ftc_session",
 	})
 
 	err := provide("chessApi", newChessApi())

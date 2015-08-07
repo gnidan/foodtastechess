@@ -2,8 +2,6 @@ package server
 
 type ServerConfig struct {
 	BindAddress string
-	AppSecret   string
-	SessionName string
 }
 
 type AuthConfig struct {
