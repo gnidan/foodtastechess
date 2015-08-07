@@ -6,7 +6,10 @@ import (
 
 var log = logger.Log("user")
 
-type Id int
+type Id string
 
 type User struct {
+	Id        Id
+	NickName  string
+	AvatarUrl string
 }

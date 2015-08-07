@@ -9,6 +9,7 @@ import (
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
+	"foodtastechess/user"
 )
 
 var (
@@ -38,8 +39,8 @@ func readConf() {
 }
 
 type App struct {
-	directory  directory.Directory
-	HttpServer *server.Server `inject:"httpServer"`
+	directory directory.Directory
+	StopChan  chan bool `inject:"stopChan"`
 }
 
 func NewApp() *App {
@@ -51,10 +52,15 @@ func NewApp() *App {
 func (app *App) LoadServices() {
 	var err error
 
+	app.StopChan = make(chan bool)
+
 	services := map[string](interface{}){
 		"httpServer":    server.New(),
 		"clientQueries": queries.NewClientQueryService(),
 		"systemQueries": queries.NewSystemQueryService(),
+		"auth":          user.NewAuthentication(),
+		"users":         user.NewUsers(),
+		"stopChan":      app.StopChan,
 	}
 
 	for name, value := range services {
@@ -95,6 +101,5 @@ func main() {
 	log.Notice("Starting foodtastechess")
 	app.Start()
 
-	for {
-	}
+	<-app.StopChan
 }

@@ -2,13 +2,16 @@ package server
 
 import (
 	"fmt"
-	"github.com/hydrogen18/stoppableListener"
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/mux"
+	"gopkg.in/tylerb/graceful.v1"
 	"net"
 	"net/http"
-	"os"
+	"time"
 
 	"foodtastechess/directory"
 	"foodtastechess/logger"
+	"foodtastechess/user"
 )
 
 var (
@@ -16,8 +19,17 @@ var (
 )
 
 type Server struct {
-	listener *stoppableListener.StoppableListener
-	Api      *chessApi `inject:"chessApi"`
+	server   *graceful.Server
+	Api      *chessApi           `inject:"chessApi"`
+	Auth     user.Authentication `inject:"auth"`
+	Config   ServerConfig        `inject:"serverConfig"`
+	StopChan chan bool           `inject:"stopChan"`
+}
+
+type ServerConfig struct {
+	BindAddress string
+	AppSecret   string
+	SessionName string
 }
 
 func New() *Server {
@@ -25,6 +37,12 @@ func New() *Server {
 }
 
 func (s *Server) PreProvide(provide directory.Provider) error {
+	provide("serverConfig", ServerConfig{
+		BindAddress: "0.0.0.0:8181",
+		AppSecret:   "secret12345",
+		SessionName: "ftc_session",
+	})
+
 	err := provide("chessApi", newChessApi())
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))
@@ -33,43 +51,88 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 }
 
 func (s *Server) PostPopulate() error {
-	s.Api.init()
+	//s.Api.init()
 	return nil
 }
 
+/*
 func (s *Server) Start() error {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8181"
+	secureMux := http.NewServeMux()
+	secureMux.HandleFunc("/hello", hello)
+	secure := negroni.New()
+	secure.Use(s.Auth.LoginRequired())
+	secure.UseHandler(secureMux)
+
+	n := negroni.New()
+	n.Use(sessions.Sessions(
+		s.Config.SessionName,
+		cookiestore.New([]byte(s.Config.AppSecret)),
+	))
+	n.Use(s.Auth.Middleware())
+
+	router := http.NewServeMux()
+	router.HandleFunc("/", hello)
+	router.Handle("/hello", secure)
+
+	n.UseHandler(router)
+
+	s.server = &graceful.Server{
+		Timeout: 10 * time.Second,
+		Server: &http.Server{
+			Addr:    s.Config.BindAddress,
+			Handler: n,
+		},
 	}
 
-	s.serve("0.0.0.0", port)
+	s.listenAndGoServe()
+
+	return nil
+}
+*/
+
+func (s *Server) Start() error {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/auth/callback", s.Auth.CompleteAuthHandler)
+	router.Handle("/api", negroni.New(
+		s.Auth.LoginRequired(),
+		s.Api.handler(),
+	))
+
+	n := negroni.Classic()
+	n.UseHandler(router)
+
+	s.server = &graceful.Server{
+		Timeout: 10 * time.Second,
+		Server: &http.Server{
+			Addr:    s.Config.BindAddress,
+			Handler: n,
+		},
+	}
+
+	s.listenAndGoServe()
+
 	return nil
 }
 
 func (s *Server) Stop() error {
-	s.listener.Stop()
+	s.server.Stop(10 * time.Second)
+	s.StopChan <- true
 	return nil
 }
 
-func (s *Server) serve(bindAddress string, port string) {
-	s.listen(bindAddress, port)
+func (s *Server) listenAndGoServe() error {
+	log.Notice("Listening at %s", s.Config.BindAddress)
+	listener, err := net.Listen("tcp", s.Config.BindAddress)
+	if err != nil {
+		return err
+	}
 
-	http.Handle("/", s.Api.handler())
-
-	go http.Serve(s.listener, nil)
+	go s.server.Serve(listener)
+	return nil
 }
 
-func (s *Server) listen(bindAddress string, port string) {
-	listen := fmt.Sprintf("%s:%s", bindAddress, port)
-	log.Notice("Listening at %s", listen)
-	listener, err := net.Listen("tcp", listen)
-	if err != nil {
-		panic("Could not bind address")
-	}
-
-	s.listener, err = stoppableListener.New(listener)
-	if err != nil {
-		panic("Could not rebind new listener")
-	}
+func hello(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "text/html")
+	res.Write([]byte("hello, world!<a href=\"/hello\">hello</a>"))
 }

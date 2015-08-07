@@ -8,6 +8,10 @@ type Users interface {
 type UsersService struct {
 }
 
+func NewUsers() Users {
+	return new(UsersService)
+}
+
 func (s *UsersService) Get(id Id) (User, bool) {
 	return User{}, false
 }
