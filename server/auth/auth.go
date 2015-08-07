@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"github.com/codegangsta/negroni"
 	"github.com/gorilla/context"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/gplus"
@@ -19,7 +18,7 @@ var log = logger.Log("auth")
 
 type Authentication interface {
 	CompleteAuthHandler(res http.ResponseWriter, req *http.Request)
-	LoginRequired() negroni.HandlerFunc
+	LoginRequired(res http.ResponseWriter, req *http.Request, next http.HandlerFunc)
 }
 
 type AuthService struct {
@@ -62,53 +61,51 @@ func (s *AuthService) PostPopulate() error {
 	return nil
 }
 
-func (s *AuthService) LoginRequired() negroni.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-		if req.URL.Path == "/auth/callback" {
-			s.CompleteAuthHandler(res, req)
-			return
-		}
-
-		sess := session.GetSession(s.SessionConfig, res, req)
-		marshalledAuth, ok := sess.Get(s.Config.SessionKey).(string)
-
-		if !ok {
-			log.Debug("No session found, creating one.")
-			s.startAuth(res, req, sess)
-			return
-		}
-
-		authSession, err := s.provider.UnmarshalSession(marshalledAuth)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			log.Error(fmt.Sprintf("Could not unmarshal auth session: %v", err))
-			return
-		}
-
-		log.Debug("Auth session: %v", authSession)
-
-		guser, err := s.provider.FetchUser(authSession)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			log.Error(fmt.Sprintf("Error fetching user: %v", err))
-		}
-
-		if guser.RawData["error"] != nil {
-			log.Debug("No access token found, starting auth over")
-			s.startAuth(res, req, sess)
-			return
-		}
-
-		u := user.User{
-			Id:        user.Id(guser.UserID),
-			NickName:  guser.NickName,
-			AvatarUrl: guser.AvatarURL,
-		}
-
-		context.Set(req, ContextKey, u)
-
-		next(res, req)
+func (s *AuthService) LoginRequired(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+	if req.URL.Path == "/auth/callback" {
+		s.CompleteAuthHandler(res, req)
+		return
 	}
+
+	sess := session.GetSession(s.SessionConfig, res, req)
+	marshalledAuth, ok := sess.Get(s.Config.SessionKey).(string)
+
+	if !ok {
+		log.Debug("No session found, creating one.")
+		s.startAuth(res, req, sess)
+		return
+	}
+
+	authSession, err := s.provider.UnmarshalSession(marshalledAuth)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		log.Error(fmt.Sprintf("Could not unmarshal auth session: %v", err))
+		return
+	}
+
+	log.Debug("Auth session: %v", authSession)
+
+	guser, err := s.provider.FetchUser(authSession)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		log.Error(fmt.Sprintf("Error fetching user: %v", err))
+	}
+
+	if guser.RawData["error"] != nil {
+		log.Debug("No access token found, starting auth over")
+		s.startAuth(res, req, sess)
+		return
+	}
+
+	u := user.User{
+		Id:        user.Id(guser.UserID),
+		NickName:  guser.NickName,
+		AvatarUrl: guser.AvatarURL,
+	}
+
+	context.Set(req, ContextKey, u)
+
+	next(res, req)
 }
 
 func (s *AuthService) startAuth(res http.ResponseWriter, req *http.Request, sess session.Session) {
@@ -119,7 +116,6 @@ func (s *AuthService) startAuth(res http.ResponseWriter, req *http.Request, sess
 	}
 	sess.Save(s.Config.SessionKey, authSession.Marshal())
 	s.loginRedirect(res, req, authSession)
-
 }
 
 func (s *AuthService) loginRedirect(res http.ResponseWriter, req *http.Request, authSession goth.Session) {
@@ -143,22 +139,22 @@ func (s *AuthService) CompleteAuthHandler(res http.ResponseWriter, req *http.Req
 	authSession, err := s.provider.UnmarshalSession(marshalledAuth)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Debug("Could not unmarshal auth session: %v", err)
+		log.Error("Could not unmarshal auth session: %v", err)
 		return
 	}
 
 	_, err = authSession.Authorize(s.provider, req.URL.Query())
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		log.Debug("Could not authorize request, got: %v", err)
+		log.Info("Could not authorize request, got: %v", err)
 	}
 
 	sess.Save(s.Config.SessionKey, authSession.Marshal())
 
-	guser, _ := s.provider.FetchUser(authSession)
-	log.Debug("User: %v", guser)
+	//guser, _ := s.provider.FetchUser(authSession)
 
 	redirectUrl, _ := url.QueryUnescape(req.URL.Query().Get("state"))
+	log.Debug("Login Successful, redirecting back to: %s", redirectUrl)
 	http.Redirect(res, req, redirectUrl, http.StatusTemporaryRedirect)
 }
 

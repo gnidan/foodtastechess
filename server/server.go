@@ -61,7 +61,7 @@ func (s *Server) Start() error {
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
 	n.Use(NewLogger())
-	n.Use(s.Auth.LoginRequired())
+	n.UseFunc(s.Auth.LoginRequired)
 	n.UseHandler(s.Api.Handler())
 
 	s.server = &graceful.Server{
