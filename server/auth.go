@@ -87,7 +87,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 		authSession, err := s.provider.UnmarshalSession(marshalledAuth)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			log.Error("Could not unmarshal auth session: %v", err)
+			log.Error(fmt.Sprintf("Could not unmarshal auth session: %v", err))
 			return
 		}
 
@@ -96,7 +96,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 		guser, err := s.provider.FetchUser(authSession)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			log.Error("Error fetching user: %v", err)
+			log.Error(fmt.Sprintf("Error fetching user: %v", err))
 		}
 		log.Debug("User: %v", guser)
 
