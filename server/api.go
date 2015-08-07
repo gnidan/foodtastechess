@@ -3,14 +3,21 @@ package server
 import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"net/http"
+
+	"foodtastechess/queries"
 )
 
 type chessApi struct {
 	restApi *rest.Api
+
+	ClientQueries queries.ClientQueries `inject:"clientQueries"`
 }
 
 func newChessApi() *chessApi {
-	api := new(chessApi)
+	return new(chessApi)
+}
+
+func (api *chessApi) init() {
 	restApi := rest.NewApi()
 	restApi.Use(rest.DefaultDevStack...)
 	router, err := rest.MakeRouter(
@@ -22,7 +29,6 @@ func newChessApi() *chessApi {
 	restApi.SetApp(router)
 
 	api.restApi = restApi
-	return api
 }
 
 func (api *chessApi) handler() http.Handler {
