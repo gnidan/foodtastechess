@@ -24,7 +24,15 @@ func New() *ChessApi {
 
 func (api *ChessApi) PostPopulate() error {
 	restApi := rest.NewApi()
-	restApi.Use(rest.DefaultDevStack...)
+	restApi.Use(
+		&rest.TimerMiddleware{},
+		&rest.RecorderMiddleware{},
+		&rest.RecoverMiddleware{
+			EnableResponseStackTrace: true,
+		},
+		&rest.JsonIndentMiddleware{},
+		&rest.ContentTypeCheckerMiddleware{},
+	)
 	restApi.Use(authMiddleware)
 	router, err := rest.MakeRouter(
 		rest.Get("/games", api.GetGames),

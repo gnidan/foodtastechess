@@ -54,7 +54,7 @@ func (s *AuthService) PostPopulate() error {
 	var err error
 	s.provider, err = goth.GetProvider("gplus")
 	if err != nil {
-		log.Debug("Could not get gplus provider: %v", err)
+		log.Error("Could not get gplus provider: %v", err)
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (s *AuthService) LoginRequired(res http.ResponseWriter, req *http.Request, 
 	marshalledAuth, ok := sess.Get(s.Config.SessionKey).(string)
 
 	if !ok {
-		log.Debug("No session found, creating one.")
+		log.Info("No session found, creating one.")
 		s.startAuth(res, req, sess)
 		return
 	}
@@ -83,8 +83,6 @@ func (s *AuthService) LoginRequired(res http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	log.Debug("Auth session: %v", authSession)
-
 	guser, err := s.provider.FetchUser(authSession)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -92,7 +90,7 @@ func (s *AuthService) LoginRequired(res http.ResponseWriter, req *http.Request, 
 	}
 
 	if guser.RawData["error"] != nil {
-		log.Debug("No access token found, starting auth over")
+		log.Info("No access token found, starting auth over")
 		s.startAuth(res, req, sess)
 		return
 	}
@@ -154,7 +152,6 @@ func (s *AuthService) CompleteAuthHandler(res http.ResponseWriter, req *http.Req
 	//guser, _ := s.provider.FetchUser(authSession)
 
 	redirectUrl, _ := url.QueryUnescape(req.URL.Query().Get("state"))
-	log.Debug("Login Successful, redirecting back to: %s", redirectUrl)
 	http.Redirect(res, req, redirectUrl, http.StatusTemporaryRedirect)
 }
 
