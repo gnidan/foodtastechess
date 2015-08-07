@@ -112,30 +112,48 @@ func (s *authService) LoginRequired(res http.ResponseWriter, req *http.Request, 
 }
 
 func (s *authService) validCredentials(session sess.Session) (user.User, bool) {
-	u := user.User{}
-
 	authSession, err := s.loadAuthSession(session)
 	if err != nil {
 		log.Info(fmt.Sprintf("Valid Auth Session not found: %v", err))
-		return u, false
+		return user.User{}, false
 	}
 
+	return s.getUser(authSession)
+}
+
+func (s *authService) getUser(authSession goth.Session) (user.User, bool) {
 	guser, err := s.provider.FetchUser(authSession)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error fetching user: %v", err))
-		return u, false
+		return user.User{}, false
 	}
 
 	if guser.RawData["error"] != nil {
 		log.Info("User Session Expired")
-		return u, false
+		return user.User{}, false
 	}
 
-	u = user.User{
-		AuthIdentifier: guser.UserID,
-		Name:           guser.NickName,
-		AvatarUrl:      guser.AvatarURL,
+	userAccess := user.UserAccess{
+		AccessToken:       guser.AccessToken,
+		AccessTokenSecret: guser.AccessTokenSecret,
 	}
+
+	u, found := s.Users.GetByAuthId(guser.UserID)
+	if found {
+		u.Name = guser.NickName
+		u.AvatarUrl = guser.AvatarURL
+		u.AccessCredentials = userAccess
+	} else {
+		u = user.User{
+			Name:              guser.NickName,
+			AvatarUrl:         guser.AvatarURL,
+			AuthIdentifier:    guser.UserID,
+			Uuid:              user.NewId(),
+			AccessCredentials: userAccess,
+		}
+	}
+
+	s.Users.Save(&u)
 
 	return u, true
 }
@@ -171,6 +189,9 @@ func (s *authService) completeAuth(res http.ResponseWriter, req *http.Request, s
 	}
 
 	s.saveAuthSession(session, authSession)
+
+	// Triggers a save
+	s.getUser(authSession)
 
 	redirectUrl, _ := url.QueryUnescape(req.URL.Query().Get("state"))
 	http.Redirect(res, req, redirectUrl, http.StatusTemporaryRedirect)

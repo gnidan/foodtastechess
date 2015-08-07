@@ -10,13 +10,15 @@ import (
 )
 
 type Users interface {
-	Get(id Id) (User, bool)
+	Get(uuid string) (User, bool)
 	GetByAuthId(authId string) (User, bool)
 	Save(user *User) error
 }
 
 type UsersService struct {
 	Config config.DatabaseConfig `inject:"databaseConfig"`
+
+	db gorm.DB
 }
 
 func NewUsers() Users {
@@ -33,7 +35,7 @@ func (s *UsersService) PreProvide(provide directory.Provider) error {
 
 func (s *UsersService) PostPopulate() error {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s",
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True",
 		s.Config.Username, s.Config.Password,
 		s.Config.HostAddr, s.Config.Port,
 		s.Config.Database,
@@ -43,14 +45,33 @@ func (s *UsersService) PostPopulate() error {
 	log.Debug("Got db: %v", db)
 
 	db.AutoMigrate(&User{})
+	db.AutoMigrate(&UserAccess{})
+
+	s.db = db
 
 	return err
 }
 
-func (s *UsersService) Get(id Id) (User, bool) {
-	return User{}, false
+func (s *UsersService) Get(uuid string) (User, bool) {
+	user := User{}
+	s.db.Where(&User{Uuid: uuid}).First(&user)
+	found := (user.ID != 0)
+	return user, found
 }
 
-func (s *UsersService) Save(user User) error {
+func (s *UsersService) GetByAuthId(authId string) (User, bool) {
+	user := User{}
+	s.db.Where(&User{AuthIdentifier: authId}).First(&user)
+	found := (user.ID != 0)
+	return user, found
+}
+
+func (s *UsersService) Save(user *User) error {
+	if s.db.NewRecord(*user) {
+		s.db.Create(user)
+	} else {
+		s.db.Save(user)
+	}
+
 	return nil
 }

@@ -1,21 +1,34 @@
 package user
 
 import (
-	"foodtastechess/logger"
+	"github.com/satori/go.uuid"
 	"time"
+
+	"foodtastechess/logger"
 )
 
 var log = logger.Log("user")
 
-type Id string
-
 type User struct {
-	ID             int
-	Uuid           Id
-	Name           string
-	AvatarUrl      string
-	AuthIdentifier string
+	ID                int
+	Uuid              string `sql:"unique_index"`
+	Name              string
+	AvatarUrl         string
+	AuthIdentifier    string `sql:"unique_index"`
+	AccessCredentials UserAccess
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
+}
+
+func NewId() string {
+	return uuid.NewV4().String()
+}
+
+type UserAccess struct {
+	ID                int
+	UserID            int `sql:"unique_index"`
+	AccessToken       string
+	AccessTokenSecret string
 }
