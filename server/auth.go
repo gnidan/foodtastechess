@@ -27,13 +27,6 @@ type AuthService struct {
 	provider     goth.Provider
 }
 
-type AuthConfig struct {
-	GoogleKey    string
-	GoogleSecret string
-	CallbackUrl  string
-	SessionKey   string
-}
-
 func NewAuthentication() Authentication {
 	return new(AuthService)
 }
@@ -112,7 +105,7 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 			AvatarUrl: guser.AvatarURL,
 		}
 
-		context.Set(req, "user", u)
+		context.Set(req, authContextKey, u)
 
 		next(res, req)
 	}

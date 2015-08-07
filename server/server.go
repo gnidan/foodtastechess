@@ -25,12 +25,6 @@ type Server struct {
 	StopChan chan bool      `inject:"stopChan"`
 }
 
-type ServerConfig struct {
-	BindAddress string
-	AppSecret   string
-	SessionName string
-}
-
 func New() *Server {
 	return new(Server)
 }

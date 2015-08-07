@@ -18,11 +18,6 @@ type CookieSession struct {
 	req    *http.Request
 }
 
-type SessionConfig struct {
-	SessionName string
-	Secret      string
-}
-
 func GetSession(config SessionConfig, res http.ResponseWriter, req *http.Request) Session {
 	session := new(CookieSession)
 	session.config = config

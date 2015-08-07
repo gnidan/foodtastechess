@@ -35,7 +35,7 @@ func (api *chessApi) init() {
 
 func (api *chessApi) handler() negroni.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-		u := context.Get(req, "user").(user.User)
+		u := context.Get(req, authContextKey).(user.User)
 
 		msg := fmt.Sprintf("Hello, %s!", u.NickName)
 
