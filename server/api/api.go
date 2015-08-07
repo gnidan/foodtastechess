@@ -8,6 +8,7 @@ import (
 
 	"foodtastechess/logger"
 	"foodtastechess/queries"
+	"foodtastechess/server/auth"
 	"foodtastechess/user"
 )
 
@@ -47,9 +48,7 @@ func (api *ChessApi) Handler() http.Handler {
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	httpReq := req.Request
-	u := context.Get(httpReq, authContextKey).(user.User)
+	u := context.Get(httpReq, auth.ContextKey).(user.User)
 
 	res.WriteJson(fmt.Sprintf("Hello, %s!", u.NickName))
 }
-
-const authContextKey string = "user"
