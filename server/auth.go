@@ -1,4 +1,4 @@
-package user
+package server
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"foodtastechess/directory"
+	"foodtastechess/user"
 )
 
 type Authentication interface {
@@ -20,7 +21,7 @@ type Authentication interface {
 type AuthService struct {
 	Config        AuthConfig    `inject:"authConfig"`
 	SessionConfig SessionConfig `inject:"sessionConfig"`
-	Users         Users         `inject:"users"`
+	Users         user.Users    `inject:"users"`
 
 	sessionStore sessions.Store
 	provider     goth.Provider
@@ -105,15 +106,13 @@ func (s *AuthService) LoginRequired() negroni.HandlerFunc {
 		}
 		log.Debug("User: %v", guser)
 
-		var userId Id
-		userId = Id(guser.UserID)
-		user := User{
-			Id:        userId,
+		u := user.User{
+			Id:        user.Id(guser.UserID),
 			NickName:  guser.NickName,
 			AvatarUrl: guser.AvatarURL,
 		}
 
-		context.Set(req, "user", user)
+		context.Set(req, "user", u)
 
 		next(res, req)
 	}

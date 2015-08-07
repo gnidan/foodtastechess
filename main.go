@@ -58,7 +58,6 @@ func (app *App) LoadServices() {
 		"httpServer":    server.New(),
 		"clientQueries": queries.NewClientQueryService(),
 		"systemQueries": queries.NewSystemQueryService(),
-		"auth":          user.NewAuthentication(),
 		"users":         user.NewUsers(),
 		"stopChan":      app.StopChan,
 	}
