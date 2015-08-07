@@ -2,6 +2,7 @@ package user
 
 import (
 	"foodtastechess/logger"
+	"time"
 )
 
 var log = logger.Log("user")
@@ -9,7 +10,12 @@ var log = logger.Log("user")
 type Id string
 
 type User struct {
-	Id        Id
-	NickName  string
-	AvatarUrl string
+	ID             int
+	Uuid           Id
+	Name           string
+	AvatarUrl      string
+	AuthIdentifier string
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

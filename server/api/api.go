@@ -55,7 +55,7 @@ func (api *ChessApi) Handler() http.Handler {
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	u := getUser(req)
-	res.WriteJson(fmt.Sprintf("Hello, %s!", u.NickName))
+	res.WriteJson(fmt.Sprintf("Hello, %s!", u.Name))
 }
 
 func getUser(req *rest.Request) user.User {

@@ -56,7 +56,7 @@ func (s *authService) PostPopulate() error {
 	var err error
 	s.provider, err = goth.GetProvider("gplus")
 	if err != nil {
-		log.Error("Could not get gplus provider: %v", err)
+		log.Error(fmt.Sprintf("Could not get gplus provider: %v", err))
 		return err
 	}
 
@@ -132,9 +132,9 @@ func (s *authService) validCredentials(session sess.Session) (user.User, bool) {
 	}
 
 	u = user.User{
-		Id:        user.Id(guser.UserID),
-		NickName:  guser.NickName,
-		AvatarUrl: guser.AvatarURL,
+		AuthIdentifier: guser.UserID,
+		Name:           guser.NickName,
+		AvatarUrl:      guser.AvatarURL,
 	}
 
 	return u, true
@@ -160,7 +160,7 @@ func (s *authService) completeAuth(res http.ResponseWriter, req *http.Request, s
 	authSession, err := s.loadAuthSession(session)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		log.Error("Could not unmarshal auth session: %v", err)
+		log.Error(fmt.Sprintf("Could not load auth session: %v", err))
 		return
 	}
 
@@ -183,7 +183,7 @@ func (s *authService) authInfo(res http.ResponseWriter, req *http.Request, sessi
 		return
 	}
 
-	res.Write([]byte(fmt.Sprintf("%v", u.Id)))
+	res.Write([]byte(fmt.Sprintf("%v", u.AuthIdentifier)))
 }
 
 func (s *authService) saveAuthSession(session sess.Session, authSession goth.Session) {
