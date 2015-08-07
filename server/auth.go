@@ -8,6 +8,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/gplus"
 	"net/http"
+	"net/url"
 
 	"foodtastechess/directory"
 	"foodtastechess/user"
@@ -144,10 +145,14 @@ func (s *AuthService) CompleteAuthHandler(res http.ResponseWriter, req *http.Req
 
 	session.Save(s.Config.SessionKey, authSession.Marshal())
 
-	guser, err := s.provider.FetchUser(authSession)
+	guser, _ := s.provider.FetchUser(authSession)
 	log.Debug("User: %v", guser)
+
+	redirectUrl, _ := url.QueryUnescape(req.URL.Query().Get("state"))
+	http.Redirect(res, req, redirectUrl, http.StatusTemporaryRedirect)
 }
 
 func getState(req *http.Request) string {
-	return "state"
+	state := url.QueryEscape(req.URL.String())
+	return state
 }
