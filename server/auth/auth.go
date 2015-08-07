@@ -133,23 +133,20 @@ func (s *authService) getUser(authSession goth.Session) (user.User, bool) {
 		return user.User{}, false
 	}
 
-	userAccess := user.UserAccess{
-		AccessToken:       guser.AccessToken,
-		AccessTokenSecret: guser.AccessTokenSecret,
-	}
-
 	u, found := s.Users.GetByAuthId(guser.UserID)
 	if found {
 		u.Name = guser.NickName
 		u.AvatarUrl = guser.AvatarURL
-		u.AccessCredentials = userAccess
+		u.AccessToken = guser.AccessToken
+		u.AccessTokenSecret = guser.AccessTokenSecret
 	} else {
 		u = user.User{
 			Name:              guser.NickName,
 			AvatarUrl:         guser.AvatarURL,
 			AuthIdentifier:    guser.UserID,
 			Uuid:              user.NewId(),
-			AccessCredentials: userAccess,
+			AccessToken:       guser.AccessToken,
+			AccessTokenSecret: guser.AccessTokenSecret,
 		}
 	}
 
@@ -204,7 +201,7 @@ func (s *authService) authInfo(res http.ResponseWriter, req *http.Request, sessi
 		return
 	}
 
-	res.Write([]byte(fmt.Sprintf("%v", u.AuthIdentifier)))
+	res.Write([]byte(fmt.Sprintf("%v", u.Uuid)))
 }
 
 func (s *authService) saveAuthSession(session sess.Session, authSession goth.Session) {

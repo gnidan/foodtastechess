@@ -42,10 +42,8 @@ func (s *UsersService) PostPopulate() error {
 	)
 
 	db, err := gorm.Open("mysql", dsn)
-	log.Debug("Got db: %v", db)
 
 	db.AutoMigrate(&User{})
-	db.AutoMigrate(&UserAccess{})
 
 	s.db = db
 

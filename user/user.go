@@ -15,7 +15,8 @@ type User struct {
 	Name              string
 	AvatarUrl         string
 	AuthIdentifier    string `sql:"unique_index"`
-	AccessCredentials UserAccess
+	AccessToken       string
+	AccessTokenSecret string
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -24,11 +25,4 @@ type User struct {
 
 func NewId() string {
 	return uuid.NewV4().String()
-}
-
-type UserAccess struct {
-	ID                int
-	UserID            int `sql:"unique_index"`
-	AccessToken       string
-	AccessTokenSecret string
 }

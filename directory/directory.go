@@ -3,7 +3,11 @@ package directory
 import (
 	"errors"
 	"fmt"
+
+	"foodtastechess/logger"
 )
+
+var log = logger.Log("directory")
 
 type Directory interface {
 	AddService(name string, object interface{}) error
