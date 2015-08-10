@@ -14,7 +14,7 @@ type moveAtTurnQuery struct {
 }
 
 func (q *moveAtTurnQuery) hash() string {
-	return fmt.Sprintf("move:%s:%s", q.gameId, q.turnNumber)
+	return fmt.Sprintf("move:%v:%v", q.gameId, q.turnNumber)
 }
 
 func (q *moveAtTurnQuery) hasResult() bool {
