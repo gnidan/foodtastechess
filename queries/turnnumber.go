@@ -22,7 +22,7 @@ func (q *turnNumberQuery) hasResult() bool {
 
 func (q *turnNumberQuery) computeResult(queries SystemQueries) {
 	moves := queries.getEvents().EventsOfTypeForGame(q.gameId, "move")
-	q.result = len(moves)
+	q.result = game.TurnNumber(len(moves))
 }
 
 func (q *turnNumberQuery) getDependentQueries() []Query {
