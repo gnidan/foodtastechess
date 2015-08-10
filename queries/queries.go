@@ -31,6 +31,7 @@ type unmovedPositionsAtTurnQuery struct {
 func TurnNumberQuery(id game.Id) Query {
 	return &turnNumberQuery{
 		gameId: id,
+		result: -1,
 	}
 }
 

@@ -17,10 +17,12 @@ func (q *turnNumberQuery) hash() string {
 }
 
 func (q *turnNumberQuery) hasResult() bool {
-	return true
+	return q.result != -1
 }
 
 func (q *turnNumberQuery) computeResult(queries SystemQueries) {
+	moves := queries.getEvents().EventsOfTypeForGame(q.gameId, "move")
+	q.result = len(moves)
 }
 
 func (q *turnNumberQuery) getDependentQueries() []Query {
