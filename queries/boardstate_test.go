@@ -9,7 +9,7 @@ import (
 )
 
 type BoardStateQueryTestSuite struct {
-	QueriesTestSuite
+	QueryTestSuite
 }
 
 func (suite *BoardStateQueryTestSuite) TestHasResult() {

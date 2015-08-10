@@ -11,7 +11,8 @@ import (
 	"foodtastechess/logger"
 )
 
-type QueriesTestSuite struct {
+// Base-class test suite
+type QueryTestSuite struct {
 	suite.Suite
 
 	log                *logging.Logger
@@ -20,7 +21,7 @@ type QueriesTestSuite struct {
 	mockEvents         *MockEventsService
 }
 
-func (suite *QueriesTestSuite) SetupTest() {
+func (suite *QueryTestSuite) SetupTest() {
 	suite.log = logger.Log("queries_test")
 
 	var (
