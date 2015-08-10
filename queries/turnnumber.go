@@ -1,6 +1,8 @@
 package queries
 
 import (
+	"fmt"
+
 	"foodtastechess/game"
 )
 
@@ -8,6 +10,10 @@ type turnNumberQuery struct {
 	gameId game.Id
 
 	result game.TurnNumber
+}
+
+func (q *turnNumberQuery) hash() string {
+	return fmt.Sprintf("turnnumber:%v", q.gameId)
 }
 
 func (q *turnNumberQuery) hasResult() bool {

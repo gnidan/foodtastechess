@@ -13,6 +13,7 @@ type Query interface {
 	getDependentQueries() []Query
 	isExpired(now interface{}) bool
 	getExpiration(now interface{}) interface{}
+	hash() string
 }
 
 type validMovesAtTurnQuery struct {

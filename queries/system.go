@@ -6,11 +6,12 @@ import (
 
 type SystemQueries interface {
 	AnswerQuery(query Query) interface{}
-	GetGameStateManager() game.GameStateManager
+	GetComputedDependentQueries(query Query) map[string]Query
+	GetGameCalculator() game.GameCalculator
 }
 
 type SystemQueryService struct {
-	gameStateManager game.GameStateManager `inject:"gameStateManager"`
+	gameCalculator game.GameCalculator `inject:"gameCalculator"`
 }
 
 func NewSystemQueryService() *SystemQueryService {
@@ -22,6 +23,10 @@ func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 	return nil
 }
 
-func (s *SystemQueryService) GetGameStateManager() game.GameStateManager {
-	return s.gameStateManager
+func (s *SystemQueryService) GetGameCalculator() game.GameCalculator {
+	return s.gameCalculator
+}
+
+func (s *SystemQueryService) GetComputedDependentQueries(query Query) map[string]Query {
+	return make(map[string]Query)
 }

@@ -14,30 +14,30 @@ import (
 type BoardStateQueryTestSuite struct {
 	suite.Suite
 
-	log                  *logging.Logger
-	mockSystemQueries    *MockSystemQueries    `inject:"systemQueries"`
-	mockGameStateManager *MockGameStateManager `inject:"gameStateManager"`
+	log                *logging.Logger
+	mockSystemQueries  *MockSystemQueries  `inject:"systemQueries"`
+	mockGameCalculator *MockGameCalculator `inject:"gameCalculator"`
 }
 
 func (suite *BoardStateQueryTestSuite) SetupTest() {
 	suite.log = logger.Log("boardstate_test")
 
 	var (
-		d                directory.Directory
-		systemQueries    MockSystemQueries
-		gameStateManager MockGameStateManager
+		d              directory.Directory
+		systemQueries  MockSystemQueries
+		gameCalculator MockGameCalculator
 	)
 
 	d = directory.New()
 	d.AddService("systemQueries", &systemQueries)
-	d.AddService("gameStateManager", &gameStateManager)
+	d.AddService("gameCalculator", &gameCalculator)
 
 	if err := d.Start(); err != nil {
 		suite.log.Fatalf("Could not start directory: %v", err)
 	}
 
 	suite.mockSystemQueries = &systemQueries
-	suite.mockGameStateManager = &gameStateManager
+	suite.mockGameCalculator = &gameCalculator
 }
 
 func (suite *BoardStateQueryTestSuite) TestHasResult() {
@@ -99,6 +99,42 @@ func (suite *BoardStateQueryTestSuite) TestDependentQueriesBaseCase() {
 }
 
 func (suite *BoardStateQueryTestSuite) TestComputeResult() {
+	var (
+		gameId game.Id = 1
+
+		position0 game.FEN = "starting chess position"
+		position1 game.FEN = "after first move"
+
+		move1 game.AlgebraicMove = "first move"
+
+		moveQuery1 *moveAtTurnQuery = &moveAtTurnQuery{
+			gameId:     gameId,
+			turnNumber: 1,
+			result:     move1,
+		}
+
+		query0 *boardStateAtTurnQuery
+		query1 *boardStateAtTurnQuery
+	)
+
+	assert := assert.New(suite.T())
+
+	suite.mockGameCalculator.On("StartingFEN").Return(position0)
+
+	query0 = BoardAtTurnQuery(gameId, 0).(*boardStateAtTurnQuery)
+	query1 = BoardAtTurnQuery(gameId, 1).(*boardStateAtTurnQuery)
+
+	query0.computeResult(suite.mockSystemQueries)
+	assert.Equal(position0, query0.result)
+
+	suite.mockSystemQueries.On("GetComputedDependentQueries", query1).Return(map[string]Query{
+		MoveAtTurnQuery(gameId, 1).hash():  moveQuery1,
+		BoardAtTurnQuery(gameId, 0).hash(): query0,
+	})
+
+	suite.mockGameCalculator.On("AfterMove", position0, move1).Return(position1)
+	query1.computeResult(suite.mockSystemQueries)
+	assert.Equal(position1, query1.result)
 }
 
 func TestBoardStateQueryTestSuite(t *testing.T) {
