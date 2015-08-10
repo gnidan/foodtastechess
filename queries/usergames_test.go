@@ -57,15 +57,20 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	)
 
 	for _, id := range activeGames {
-		gameStarts = append(gameStarts, events.Event{GameId: id})
+		gameStarts = append(gameStarts, events.NewGameStartEvent(id))
 	}
 	for _, id := range finishedGames {
-		gameStarts = append(gameStarts, events.Event{GameId: id})
-		gameEnds = append(gameEnds, events.Event{GameId: id})
+		gameStarts = append(gameStarts, events.NewGameStartEvent(id))
+		gameEnds = append(gameEnds, events.NewGameEndEvent(id))
 	}
 
-	suite.mockEvents.On("EventsOfTypeForPlayer", playerId, "start_game").Return(gameStarts)
-	suite.mockEvents.On("EventsOfTypeForPlayer", playerId, "end_game").Return(gameEnds)
+	suite.mockEvents.
+		On("EventsOfTypeForPlayer", playerId, events.GameStartType).
+		Return(gameStarts)
+
+	suite.mockEvents.
+		On("EventsOfTypeForPlayer", playerId, events.GameEndType).
+		Return(gameEnds)
 
 	query = UserGamesQuery(playerId).(*userGamesQuery)
 

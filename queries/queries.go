@@ -57,3 +57,9 @@ func UserGamesQuery(playerId string) Query {
 		playerId: playerId,
 	}
 }
+
+func DrawOfferStateQuery(gameId game.Id) Query {
+	return &drawOfferStateQuery{
+		gameId: gameId,
+	}
+}

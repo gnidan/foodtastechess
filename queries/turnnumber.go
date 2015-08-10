@@ -3,6 +3,7 @@ package queries
 import (
 	"fmt"
 
+	"foodtastechess/events"
 	"foodtastechess/game"
 )
 
@@ -21,7 +22,7 @@ func (q *turnNumberQuery) hasResult() bool {
 }
 
 func (q *turnNumberQuery) computeResult(queries SystemQueries) {
-	moves := queries.getEvents().EventsOfTypeForGame(q.gameId, "move")
+	moves := queries.getEvents().EventsOfTypeForGame(q.gameId, events.MoveType)
 	q.result = game.TurnNumber(len(moves))
 }
 

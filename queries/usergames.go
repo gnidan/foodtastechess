@@ -21,15 +21,18 @@ func (q *userGamesQuery) hasResult() bool {
 func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	activeGames := make(map[game.Id]events.Event)
 
-	gameStarts := queries.getEvents().EventsOfTypeForPlayer(q.playerId, "start_game")
-	gameEnds := queries.getEvents().EventsOfTypeForPlayer(q.playerId, "end_game")
+	gameStarts := queries.getEvents().
+		EventsOfTypeForPlayer(q.playerId, events.GameStartType)
+
+	gameEnds := queries.getEvents().
+		EventsOfTypeForPlayer(q.playerId, events.GameEndType)
 
 	for _, event := range gameStarts {
-		activeGames[event.GameId] = event
+		activeGames[event.GameId()] = event
 	}
 
 	for _, event := range gameEnds {
-		delete(activeGames, event.GameId)
+		delete(activeGames, event.GameId())
 	}
 
 	activeGameIds := []game.Id{}
