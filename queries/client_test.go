@@ -8,11 +8,6 @@ import (
 
 	"foodtastechess/directory"
 	"foodtastechess/game"
-	"foodtastechess/logger"
-)
-
-var (
-	log = logger.Log("client_test")
 )
 
 // ClientQueriesTestSuite is a collection of tests to ensure the correct
@@ -32,11 +27,11 @@ type MockSystemQueries struct {
 	mock.Mock
 }
 
-// GetAnswer records the call with Query and returns the pre-configured
+// ComputeAnswer records the call with Query and returns the pre-configured
 // mock answer
-func (m *MockSystemQueries) GetAnswer(query Query) Answer {
+func (m *MockSystemQueries) AnswerQuery(query Query) interface{} {
 	args := m.Called(query)
-	return args.Get(0).(Answer)
+	return args.Get(0)
 }
 
 // SetupTest prepares the test suite for running by making a fake system
@@ -90,8 +85,8 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	)
 
 	// given our expected queries, return our respective expected results
-	suite.mockSystemQueries.On("GetAnswer", turnNumberQuery).Return(expectedTurnNumber)
-	suite.mockSystemQueries.On("GetAnswer", boardStateQuery).Return(expectedBoardState)
+	suite.mockSystemQueries.On("AnswerQuery", turnNumberQuery).Return(expectedTurnNumber)
+	suite.mockSystemQueries.On("AnswerQuery", boardStateQuery).Return(expectedBoardState)
 
 	// run the test call
 	gameInfo := suite.clientQueries.GameInformation(gameId)

@@ -1,7 +1,7 @@
 package queries
 
 type SystemQueries interface {
-	AnswerQuery(query Query)
+	AnswerQuery(query Query) interface{}
 }
 
 type SystemQueryService struct {
@@ -12,5 +12,6 @@ func NewSystemQueryService() *SystemQueryService {
 	return sqs
 }
 
-func (s *SystemQueryService) AnswerQuery(query Query) {
+func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
+	return nil
 }

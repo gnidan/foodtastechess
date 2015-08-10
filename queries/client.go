@@ -34,13 +34,11 @@ type GameInformation struct {
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
 func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
-	var (
-		turnNumberQuery Query           = TurnNumberQuery(id)
-		turnNumber      game.TurnNumber = s.SystemQueries.AnswerQuery(turnNumberQuery).(game.TurnNumber)
+	turnNumberQ := TurnNumberQuery(id).(*turnNumberQuery)
+	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
 
-		boardStateQuery Query    = BoardAtTurnQuery(id, turnNumber)
-		boardState      game.FEN = s.SystemQueries.AnswerQuery(boardStateQuery).(game.FEN)
-	)
+	boardStateQ := BoardAtTurnQuery(id, turnNumber).(*boardStateAtTurnQuery)
+	boardState := s.SystemQueries.AnswerQuery(boardStateQ).(game.FEN)
 
 	return GameInformation{
 		TurnNumber: turnNumber,
