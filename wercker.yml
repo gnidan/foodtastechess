@@ -61,7 +61,8 @@ build:
     - script:
         name: go test
         code: |
-          go test -cover ./...
+          go test -cover foodtastechess/queries
+          #go test -cover ./...
 
   after-steps:
         - slack-notifier:
