@@ -14,7 +14,7 @@ func (q *turnNumberQuery) hasResult() bool {
 	return true
 }
 
-func (q *turnNumberQuery) computeResult(map[Query]Query) {
+func (q *turnNumberQuery) computeResult(queries SystemQueries) {
 }
 
 func (q *turnNumberQuery) getDependentQueries() []Query {

@@ -1,13 +1,14 @@
 package queries
 
 import (
+	"github.com/op/go-logging"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
 
 	"foodtastechess/directory"
 	"foodtastechess/game"
+	"foodtastechess/logger"
 )
 
 // ClientQueriesTestSuite is a collection of tests to ensure the correct
@@ -17,33 +18,24 @@ import (
 type ClientQueriesTestSuite struct {
 	suite.Suite
 
+	log               *logging.Logger
 	mockSystemQueries *MockSystemQueries
 	clientQueries     ClientQueries
-}
-
-// MockSystemQueries is a mock that we're going to use as a
-// SystemQueryInterface
-type MockSystemQueries struct {
-	mock.Mock
-}
-
-// ComputeAnswer records the call with Query and returns the pre-configured
-// mock answer
-func (m *MockSystemQueries) AnswerQuery(query Query) interface{} {
-	args := m.Called(query)
-	return args.Get(0)
 }
 
 // SetupTest prepares the test suite for running by making a fake system
 // query service, providing it to a real client query service (the one we
 // are testing)
 func (suite *ClientQueriesTestSuite) SetupTest() {
+	suite.log = logger.Log("client_test")
 	var (
 		d directory.Directory
 
 		systemQueries MockSystemQueries
 		clientQueries ClientQueryService
 	)
+
+	systemQueries.complete = true
 
 	// Set up a directory with:
 	//  - A real ClientQueryService (The one we are testing)
@@ -55,7 +47,7 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 	// Populate the directory so that clientQueries knows to use our mocked
 	// systemQueries
 	if err := d.Start(); err != nil {
-		log.Fatalf("Could not start directory (%v)", err)
+		suite.log.Fatalf("Could not start directory (%v)", err)
 	}
 
 	// Store references for use in tests

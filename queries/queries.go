@@ -9,7 +9,7 @@ var log = logger.Log("queries")
 
 type Query interface {
 	hasResult() bool
-	computeResult(map[Query]Query)
+	computeResult(sqs SystemQueries)
 	getDependentQueries() []Query
 	isExpired(now interface{}) bool
 	getExpiration(now interface{}) interface{}
@@ -35,6 +35,13 @@ func TurnNumberQuery(id game.Id) Query {
 
 func BoardAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	return &boardStateAtTurnQuery{
+		gameId:     id,
+		turnNumber: turnNumber,
+	}
+}
+
+func MoveAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
+	return &moveAtTurnQuery{
 		gameId:     id,
 		turnNumber: turnNumber,
 	}

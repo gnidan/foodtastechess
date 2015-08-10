@@ -5,7 +5,8 @@ import (
 )
 
 type moveAtTurnQuery struct {
-	gameId game.Id
+	gameId     game.Id
+	turnNumber game.TurnNumber
 
 	result game.AlgebraicMove
 }
@@ -14,7 +15,7 @@ func (q *moveAtTurnQuery) hasResult() bool {
 	return true
 }
 
-func (q *moveAtTurnQuery) computeResult(map[Query]Query) {
+func (q *moveAtTurnQuery) computeResult(queries SystemQueries) {
 }
 
 func (q *moveAtTurnQuery) getDependentQueries() []Query {
