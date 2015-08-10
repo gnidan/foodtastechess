@@ -36,10 +36,10 @@ type GameInformation struct {
 func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 	var (
 		turnNumberQuery Query           = TurnNumberQuery(id)
-		turnNumber      game.TurnNumber = s.SystemQueries.GetAnswer(turnNumberQuery).(game.TurnNumber)
+		turnNumber      game.TurnNumber = s.SystemQueries.AnswerQuery(turnNumberQuery).(game.TurnNumber)
 
 		boardStateQuery Query    = BoardAtTurnQuery(id, turnNumber)
-		boardState      game.FEN = s.SystemQueries.GetAnswer(boardStateQuery).(game.FEN)
+		boardState      game.FEN = s.SystemQueries.AnswerQuery(boardStateQuery).(game.FEN)
 	)
 
 	return GameInformation{
