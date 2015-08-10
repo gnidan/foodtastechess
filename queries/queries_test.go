@@ -1,10 +1,48 @@
 package queries
 
 import (
+	"github.com/op/go-logging"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 
+	"foodtastechess/directory"
+	"foodtastechess/events"
 	"foodtastechess/game"
+	"foodtastechess/logger"
 )
+
+type QueriesTestSuite struct {
+	suite.Suite
+
+	log                *logging.Logger
+	mockSystemQueries  *MockSystemQueries
+	mockGameCalculator *MockGameCalculator
+	mockEvents         *MockEventsService
+}
+
+func (suite *QueriesTestSuite) SetupTest() {
+	suite.log = logger.Log("queries_test")
+
+	var (
+		d              directory.Directory
+		systemQueries  MockSystemQueries
+		gameCalculator MockGameCalculator
+		events         MockEventsService
+	)
+
+	d = directory.New()
+	d.AddService("systemQueries", &systemQueries)
+	d.AddService("gameCalculator", &gameCalculator)
+	d.AddService("eventsService", &events)
+
+	if err := d.Start(); err != nil {
+		suite.log.Fatalf("Could not start directory: %v", err)
+	}
+
+	suite.mockSystemQueries = &systemQueries
+	suite.mockGameCalculator = &gameCalculator
+	suite.mockEvents = &events
+}
 
 // MockSystemQueries is a mock that we're going to use as a
 // SystemQueryInterface
@@ -13,6 +51,7 @@ type MockSystemQueries struct {
 
 	complete bool
 
+	Events         events.Events       `inject:"eventsService"`
 	GameCalculator game.GameCalculator `inject:"gameCalculator"`
 }
 
@@ -32,10 +71,16 @@ func (m *MockSystemQueries) getGameCalculator() game.GameCalculator {
 	return m.GameCalculator
 }
 
+func (m *MockSystemQueries) getEvents() events.Events {
+	return m.Events
+}
+
 func (m *MockSystemQueries) IsComplete() bool {
 	return m.complete
 }
 
+// MockGameCalculator is a mock that is used as a fake
+// GameCalculator
 type MockGameCalculator struct {
 	mock.Mock
 }
@@ -48,4 +93,29 @@ func (m *MockGameCalculator) StartingFEN() game.FEN {
 func (m *MockGameCalculator) AfterMove(initial game.FEN, move game.AlgebraicMove) game.FEN {
 	args := m.Called(initial, move)
 	return args.Get(0).(game.FEN)
+}
+
+// MockEventsService is a mock that is used as a fake Events
+// service
+type MockEventsService struct {
+	mock.Mock
+}
+
+func (m *MockEventsService) Receive(event events.Event) error {
+	return nil
+}
+
+func (m *MockEventsService) EventsForGame(gameId game.Id) []events.Event {
+	args := m.Called(gameId)
+	return args.Get(0).([]events.Event)
+}
+
+func (m *MockEventsService) EventsOfTypeForGame(gameId game.Id, eventType string) []events.Event {
+	args := m.Called(gameId, eventType)
+	return args.Get(0).([]events.Event)
+}
+
+func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType string) []events.Event {
+	args := m.Called(userId, eventType)
+	return args.Get(0).([]events.Event)
 }

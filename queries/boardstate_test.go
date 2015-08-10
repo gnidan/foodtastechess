@@ -1,43 +1,15 @@
 package queries
 
 import (
-	"github.com/op/go-logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
 
-	"foodtastechess/directory"
 	"foodtastechess/game"
-	"foodtastechess/logger"
 )
 
 type BoardStateQueryTestSuite struct {
-	suite.Suite
-
-	log                *logging.Logger
-	mockSystemQueries  *MockSystemQueries  `inject:"systemQueries"`
-	mockGameCalculator *MockGameCalculator `inject:"gameCalculator"`
-}
-
-func (suite *BoardStateQueryTestSuite) SetupTest() {
-	suite.log = logger.Log("boardstate_test")
-
-	var (
-		d              directory.Directory
-		systemQueries  MockSystemQueries
-		gameCalculator MockGameCalculator
-	)
-
-	d = directory.New()
-	d.AddService("systemQueries", &systemQueries)
-	d.AddService("gameCalculator", &gameCalculator)
-
-	if err := d.Start(); err != nil {
-		suite.log.Fatalf("Could not start directory: %v", err)
-	}
-
-	suite.mockSystemQueries = &systemQueries
-	suite.mockGameCalculator = &gameCalculator
+	QueriesTestSuite
 }
 
 func (suite *BoardStateQueryTestSuite) TestHasResult() {

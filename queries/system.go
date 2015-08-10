@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"foodtastechess/events"
 	"foodtastechess/game"
 )
 
@@ -8,10 +9,12 @@ type SystemQueries interface {
 	AnswerQuery(query Query) interface{}
 	getDependentQueryLookup(query Query) QueryLookup
 	getGameCalculator() game.GameCalculator
+	getEvents() events.Events
 }
 
 type SystemQueryService struct {
 	gameCalculator game.GameCalculator `inject:"gameCalculator"`
+	events         events.Events       `inject:"events"`
 }
 
 func NewSystemQueryService() *SystemQueryService {
