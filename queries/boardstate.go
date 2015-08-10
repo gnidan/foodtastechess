@@ -27,11 +27,11 @@ func (q *boardStateAtTurnQuery) computeResult(queries SystemQueries) {
 		return
 	}
 
-	dependentQueries := queries.GetComputedDependentQueries(q)
+	dependentQueries := queries.GetDependentQueryLookup(q)
 	log.Debug("%v", dependentQueries)
-	lastPosition := dependentQueries[BoardAtTurnQuery(q.gameId, q.turnNumber-1).hash()].(*boardStateAtTurnQuery).result
+	lastPosition := dependentQueries.Lookup(BoardAtTurnQuery(q.gameId, q.turnNumber-1)).(*boardStateAtTurnQuery).result
 
-	lastMove := dependentQueries[MoveAtTurnQuery(q.gameId, q.turnNumber).hash()].(*moveAtTurnQuery).result
+	lastMove := dependentQueries.Lookup(MoveAtTurnQuery(q.gameId, q.turnNumber)).(*moveAtTurnQuery).result
 
 	q.result = queries.GetGameCalculator().AfterMove(lastPosition, lastMove)
 }

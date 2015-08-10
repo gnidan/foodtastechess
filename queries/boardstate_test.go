@@ -127,10 +127,10 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 	query0.computeResult(suite.mockSystemQueries)
 	assert.Equal(position0, query0.result)
 
-	suite.mockSystemQueries.On("GetComputedDependentQueries", query1).Return(map[string]Query{
-		MoveAtTurnQuery(gameId, 1).hash():  moveQuery1,
-		BoardAtTurnQuery(gameId, 0).hash(): query0,
-	})
+	suite.mockSystemQueries.On("GetDependentQueryLookup", query1).Return(NewQueryLookup(
+		moveQuery1,
+		query0,
+	))
 
 	suite.mockGameCalculator.On("AfterMove", position0, move1).Return(position1)
 	query1.computeResult(suite.mockSystemQueries)

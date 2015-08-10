@@ -23,9 +23,9 @@ func (m *MockSystemQueries) AnswerQuery(query Query) interface{} {
 	return args.Get(0)
 }
 
-func (m *MockSystemQueries) GetComputedDependentQueries(query Query) map[string]Query {
+func (m *MockSystemQueries) GetDependentQueryLookup(query Query) QueryLookup {
 	args := m.Called(query)
-	return args.Get(0).(map[string]Query)
+	return args.Get(0).(QueryLookup)
 }
 
 func (m *MockSystemQueries) GetGameCalculator() game.GameCalculator {
