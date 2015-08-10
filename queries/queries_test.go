@@ -23,12 +23,12 @@ func (m *MockSystemQueries) AnswerQuery(query Query) interface{} {
 	return args.Get(0)
 }
 
-func (m *MockSystemQueries) GetDependentQueryLookup(query Query) QueryLookup {
+func (m *MockSystemQueries) getDependentQueryLookup(query Query) QueryLookup {
 	args := m.Called(query)
 	return args.Get(0).(QueryLookup)
 }
 
-func (m *MockSystemQueries) GetGameCalculator() game.GameCalculator {
+func (m *MockSystemQueries) getGameCalculator() game.GameCalculator {
 	return m.GameCalculator
 }
 

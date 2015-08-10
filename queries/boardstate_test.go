@@ -127,7 +127,7 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 	query0.computeResult(suite.mockSystemQueries)
 	assert.Equal(position0, query0.result)
 
-	suite.mockSystemQueries.On("GetDependentQueryLookup", query1).Return(NewQueryLookup(
+	suite.mockSystemQueries.On("getDependentQueryLookup", query1).Return(NewQueryLookup(
 		moveQuery1,
 		query0,
 	))

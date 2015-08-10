@@ -23,17 +23,17 @@ func (q *boardStateAtTurnQuery) hasResult() bool {
 
 func (q *boardStateAtTurnQuery) computeResult(queries SystemQueries) {
 	if q.turnNumber == 0 {
-		q.result = queries.GetGameCalculator().StartingFEN()
+		q.result = queries.getGameCalculator().StartingFEN()
 		return
 	}
 
-	dependentQueries := queries.GetDependentQueryLookup(q)
+	dependentQueries := queries.getDependentQueryLookup(q)
 	log.Debug("%v", dependentQueries)
 	lastPosition := dependentQueries.Lookup(BoardAtTurnQuery(q.gameId, q.turnNumber-1)).(*boardStateAtTurnQuery).result
 
 	lastMove := dependentQueries.Lookup(MoveAtTurnQuery(q.gameId, q.turnNumber)).(*moveAtTurnQuery).result
 
-	q.result = queries.GetGameCalculator().AfterMove(lastPosition, lastMove)
+	q.result = queries.getGameCalculator().AfterMove(lastPosition, lastMove)
 }
 
 func (q *boardStateAtTurnQuery) getDependentQueries() []Query {

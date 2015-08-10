@@ -6,8 +6,8 @@ import (
 
 type SystemQueries interface {
 	AnswerQuery(query Query) interface{}
-	GetDependentQueryLookup(query Query) QueryLookup
-	GetGameCalculator() game.GameCalculator
+	getDependentQueryLookup(query Query) QueryLookup
+	getGameCalculator() game.GameCalculator
 }
 
 type SystemQueryService struct {
@@ -23,11 +23,11 @@ func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 	return nil
 }
 
-func (s *SystemQueryService) GetGameCalculator() game.GameCalculator {
+func (s *SystemQueryService) getGameCalculator() game.GameCalculator {
 	return s.gameCalculator
 }
 
-func (s *SystemQueryService) GetDependentQueryLookup(query Query) QueryLookup {
+func (s *SystemQueryService) getDependentQueryLookup(query Query) QueryLookup {
 	return NewQueryLookup()
 }
 
