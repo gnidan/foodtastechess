@@ -47,14 +47,6 @@ func (q *boardStateAtTurnQuery) getDependentQueries() []Query {
 	}
 }
 
-func (q *boardStateAtTurnQuery) isExpired(now interface{}) bool {
-	return false
-}
-
-func (q *boardStateAtTurnQuery) getExpiration(now interface{}) interface{} {
-	return nil
-}
-
 func (q *boardStateAtTurnQuery) GoString() string {
 	return fmt.Sprintf(
 		"BoardAtTurn(%d, game=%d)", q.turnNumber, q.gameId,

@@ -23,11 +23,3 @@ func (q *drawOfferStateQuery) computeResult(map[Query]Query) {
 func (q *drawOfferStateQuery) getDependentQueries() []Query {
 	return []Query{}
 }
-
-func (q *drawOfferStateQuery) isExpired(now interface{}) bool {
-	return false
-}
-
-func (q *drawOfferStateQuery) getExpiration(now interface{}) interface{} {
-	return nil
-}

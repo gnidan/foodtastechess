@@ -9,10 +9,13 @@ var log = logger.Log("queries")
 
 type Query interface {
 	hasResult() bool
-	computeResult(sqs SystemQueries)
+
 	getDependentQueries() []Query
+	computeResult(sqs SystemQueries)
+
 	isExpired(now interface{}) bool
 	getExpiration(now interface{}) interface{}
+
 	hash() string
 }
 
@@ -46,5 +49,11 @@ func MoveAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	return &moveAtTurnQuery{
 		gameId:     id,
 		turnNumber: turnNumber,
+	}
+}
+
+func UserGamesQuery(playerId string) Query {
+	return &userGamesQuery{
+		playerId: playerId,
 	}
 }

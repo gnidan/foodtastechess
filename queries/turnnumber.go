@@ -28,11 +28,3 @@ func (q *turnNumberQuery) computeResult(queries SystemQueries) {
 func (q *turnNumberQuery) getDependentQueries() []Query {
 	return []Query{}
 }
-
-func (q *turnNumberQuery) isExpired(now interface{}) bool {
-	return false
-}
-
-func (q *turnNumberQuery) getExpiration(now interface{}) interface{} {
-	return nil
-}

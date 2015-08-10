@@ -13,4 +13,5 @@ type Events interface {
 }
 
 type Event struct {
+	GameId game.Id
 }
