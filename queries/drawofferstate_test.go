@@ -105,7 +105,6 @@ func (suite *DrawOfferStateQueryTestSuite) TestComputeResult() {
 	query = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
 	query.computeResult(suite.mockSystemQueries)
 	assert.Equal(blackDrawOffer, query.result)
-
 }
 
 func TestDrawOfferStateQueryTestSuite(t *testing.T) {
