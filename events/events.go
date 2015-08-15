@@ -10,6 +10,7 @@ type Events interface {
 	EventsForGame(gameId game.Id) []Event
 	EventsOfTypeForGame(gameId game.Id, eventType string) []Event
 	EventsOfTypeForPlayer(userId string, eventType string) []Event
+	MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) MoveEvent
 }
 
 type Event interface {
@@ -17,7 +18,9 @@ type Event interface {
 }
 
 type MoveEvent struct {
-	gameId game.Id
+	gameId     game.Id
+	TurnNumber game.TurnNumber
+	Move       game.AlgebraicMove
 }
 
 func (e MoveEvent) GameId() game.Id {
@@ -66,8 +69,8 @@ const (
 	DrawOfferResponseType = "offer:respond"
 )
 
-func NewMoveEvent(gameId game.Id) Event {
-	return MoveEvent{gameId}
+func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.AlgebraicMove) Event {
+	return MoveEvent{gameId, turnNumber, move}
 }
 
 func NewGameStartEvent(gameId game.Id) Event {

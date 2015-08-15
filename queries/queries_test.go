@@ -120,3 +120,8 @@ func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType strin
 	args := m.Called(userId, eventType)
 	return args.Get(0).([]events.Event)
 }
+
+func (m *MockEventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) events.MoveEvent {
+	args := m.Called(gameId, turnNumber)
+	return args.Get(0).(events.MoveEvent)
+}
