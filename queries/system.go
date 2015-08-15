@@ -13,25 +13,36 @@ type SystemQueries interface {
 }
 
 type SystemQueryService struct {
-	gameCalculator game.GameCalculator `inject:"gameCalculator"`
-	events         events.Events       `inject:"events"`
+	GameCalculator game.GameCalculator `inject:"gameCalculator"`
+	Events         events.Events       `inject:"eventsService"`
+	Cache          Cache               `inject:"queriesCache"`
 }
 
-func NewSystemQueryService() *SystemQueryService {
+func NewSystemQueryService() SystemQueries {
 	sqs := new(SystemQueryService)
 	return sqs
 }
 
 func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
-	return nil
-}
+	found := s.Cache.Get(query)
+	if found {
+		return query.getResult()
+	}
 
-func (s *SystemQueryService) getGameCalculator() game.GameCalculator {
-	return s.gameCalculator
+	query.computeResult(s)
+	return query.getResult()
 }
 
 func (s *SystemQueryService) getDependentQueryLookup(query Query) QueryLookup {
 	return NewQueryLookup()
+}
+
+func (s *SystemQueryService) getGameCalculator() game.GameCalculator {
+	return s.GameCalculator
+}
+
+func (s *SystemQueryService) getEvents() events.Events {
+	return s.Events
 }
 
 type QueryLookup struct {

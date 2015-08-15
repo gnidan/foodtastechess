@@ -21,6 +21,10 @@ func (q *boardStateAtTurnQuery) hasResult() bool {
 	return q.result != ""
 }
 
+func (q *boardStateAtTurnQuery) getResult() interface{} {
+	return q.result
+}
+
 func (q *boardStateAtTurnQuery) computeResult(queries SystemQueries) {
 	if q.turnNumber == 0 {
 		q.result = queries.getGameCalculator().StartingFEN()

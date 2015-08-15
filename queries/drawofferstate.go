@@ -26,6 +26,10 @@ func (q *drawOfferStateQuery) hasResult() bool {
 	return q.answered
 }
 
+func (q *drawOfferStateQuery) getResult() interface{} {
+	return q.result
+}
+
 func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
 	offers := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferType)
 	responses := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferResponseType)

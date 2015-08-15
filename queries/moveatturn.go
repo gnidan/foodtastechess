@@ -22,6 +22,10 @@ func (q *moveAtTurnQuery) hasResult() bool {
 	return q.answered
 }
 
+func (q *moveAtTurnQuery) getResult() interface{} {
+	return q.result
+}
+
 func (q *moveAtTurnQuery) computeResult(queries SystemQueries) {
 	moveEvent := queries.getEvents().MoveEventForGameAtTurn(q.gameId, q.turnNumber)
 

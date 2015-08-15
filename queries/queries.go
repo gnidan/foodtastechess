@@ -9,6 +9,7 @@ var log = logger.Log("queries")
 
 type Query interface {
 	hasResult() bool
+	getResult() interface{}
 
 	getDependentQueries() []Query
 	computeResult(sqs SystemQueries)
@@ -23,12 +24,6 @@ type validMovesAtTurnQuery struct {
 	gameId game.Id
 
 	result game.ValidMoves
-}
-
-type unmovedPositionsAtTurnQuery struct {
-	gameId game.Id
-
-	result []game.Position
 }
 
 func TurnNumberQuery(id game.Id) Query {

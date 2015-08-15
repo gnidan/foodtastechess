@@ -18,6 +18,10 @@ func (q *userGamesQuery) hasResult() bool {
 	return q.answered
 }
 
+func (q *userGamesQuery) getResult() interface{} {
+	return q.result
+}
+
 func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	activeGames := make(map[game.Id]events.Event)
 

@@ -19,6 +19,7 @@ type QueryTestSuite struct {
 	mockSystemQueries  *MockSystemQueries
 	mockGameCalculator *MockGameCalculator
 	mockEvents         *MockEventsService
+	mockQueriesCache   *MockQueriesCache
 }
 
 func (suite *QueryTestSuite) SetupTest() {
@@ -29,12 +30,14 @@ func (suite *QueryTestSuite) SetupTest() {
 		systemQueries  MockSystemQueries
 		gameCalculator MockGameCalculator
 		events         MockEventsService
+		queriesCache   MockQueriesCache
 	)
 
 	d = directory.New()
 	d.AddService("systemQueries", &systemQueries)
 	d.AddService("gameCalculator", &gameCalculator)
 	d.AddService("eventsService", &events)
+	d.AddService("queriesCache", &queriesCache)
 
 	if err := d.Start(); err != nil {
 		suite.log.Fatalf("Could not start directory: %v", err)
@@ -43,6 +46,7 @@ func (suite *QueryTestSuite) SetupTest() {
 	suite.mockSystemQueries = &systemQueries
 	suite.mockGameCalculator = &gameCalculator
 	suite.mockEvents = &events
+	suite.mockQueriesCache = &queriesCache
 }
 
 // MockSystemQueries is a mock that we're going to use as a
@@ -54,6 +58,7 @@ type MockSystemQueries struct {
 
 	Events         events.Events       `inject:"eventsService"`
 	GameCalculator game.GameCalculator `inject:"gameCalculator"`
+	Cache          Cache               `inject:"queriesCache"`
 }
 
 // ComputeAnswer records the call with Query and returns the pre-configured
@@ -124,4 +129,22 @@ func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType strin
 func (m *MockEventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) events.MoveEvent {
 	args := m.Called(gameId, turnNumber)
 	return args.Get(0).(events.MoveEvent)
+}
+
+// MockQueriesCache is a mock that is used as a fake Cache service
+type MockQueriesCache struct {
+	mock.Mock
+}
+
+func (m *MockQueriesCache) Get(partial Query) bool {
+	args := m.Called(partial)
+	return args.Bool(0)
+}
+
+func (m *MockQueriesCache) Store(query Query) {
+	m.Called(query)
+}
+
+func (m *MockQueriesCache) Delete(partial Query) {
+	m.Called(partial)
 }
