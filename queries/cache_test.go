@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
 
 	"foodtastechess/directory"
 	"foodtastechess/game"
@@ -19,9 +20,10 @@ type QueriesCacheTestSuite struct {
 }
 
 type testQuery struct {
-	queryRecord
+	queryRecord `bson:",inline"`
 
-	Result string
+	Answered bool
+	Result   string
 }
 
 func (suite *QueriesCacheTestSuite) SetupTest() {
@@ -65,7 +67,36 @@ func (suite *QueriesCacheTestSuite) TestStore() {
 	assert.Equal(query.Result, partial.Result)
 }
 
-func (suite *QueriesCacheTestSuite) TestRetrieveOrdering() {
+func (suite *QueriesCacheTestSuite) TestGetOrder() {
+	var (
+		query1 *testQuery = new(testQuery)
+		query2 *testQuery = new(testQuery)
+		query3 *testQuery = new(testQuery)
+
+		time1 time.Time
+		time2 time.Time
+		time3 time.Time
+	)
+
+	time1 = time.Now().Truncate(time.Millisecond)
+	time2 = time1.Add(5 * time.Hour).Truncate(time.Millisecond)
+	time3 = time1.Add(-3 * time.Hour).Truncate(time.Millisecond)
+
+	query1.ComputedAt = time1
+	query2.ComputedAt = time2
+	query3.ComputedAt = time3
+
+	suite.cache.Store(query1)
+	suite.cache.Store(query2)
+	suite.cache.Store(query3)
+
+	partial := new(testQuery)
+
+	found := suite.cache.Get(partial)
+
+	assert := assert.New(suite.T())
+	assert.Equal(true, found)
+	assert.Equal(query2.ComputedAt, partial.ComputedAt)
 }
 
 func TestQueriesCache(t *testing.T) {
@@ -73,11 +104,11 @@ func TestQueriesCache(t *testing.T) {
 }
 
 func (q *testQuery) hasResult() bool {
-	return false
+	return q.Answered
 }
 
 func (q *testQuery) getResult() interface{} {
-	return nil
+	return q.Result
 }
 
 func (q *testQuery) getDependentQueries() []Query {
@@ -96,5 +127,5 @@ func (q *testQuery) getExpiration(now interface{}) interface{} {
 }
 
 func (q *testQuery) hash() string {
-	return ""
+	return "test-query"
 }

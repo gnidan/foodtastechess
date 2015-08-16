@@ -48,7 +48,14 @@ func NewQueriesCache() Cache {
 }
 
 func (c *queriesCache) Get(partial Query) bool {
-	err := c.collection.Find(map[string]string{"hash": partial.hash()}).One(partial)
+	lookup := map[string]string{
+		"hash": partial.hash(),
+	}
+
+	err := c.collection.
+		Find(lookup).
+		Sort("-computedat").
+		One(partial)
 	if err != nil {
 		log.Error(fmt.Sprintf("Got error retrieving: %v", err))
 		return false
