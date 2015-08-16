@@ -93,6 +93,8 @@ func (suite *SystemQueriesTestSuite) TestCompute() {
 	expected := game.TurnNumber(len(fakeMoves))
 	suite.mockEvents.On("EventsOfTypeForGame", gameId, events.MoveType).Return(fakeMoves).Once()
 
+	suite.mockQueriesCache.On("Store", query).Return().Once()
+
 	actual := suite.systemQueries.AnswerQuery(query).(game.TurnNumber)
 	assert.Equal(expected, actual)
 }
@@ -137,8 +139,33 @@ func (suite *SystemQueriesTestSuite) TestDependentQueries() {
 		On("AfterMove", previousBoardState, lastMove).
 		Return(expectedState)
 
+	suite.mockQueriesCache.On("Store", query).Return().Once()
+
 	actualState := suite.systemQueries.AnswerQuery(query).(game.FEN)
 	assert.Equal(expectedState, actualState)
+}
+
+func (suite *SystemQueriesTestSuite) TestQueryStorage() {
+	var (
+		gameId game.Id = 5
+		query  Query   = TurnNumberQuery(gameId)
+	)
+
+	suite.mockQueriesCache.
+		On("Get", query).
+		Return(false)
+
+	fakeMoves := []events.Event{
+		events.NewMoveEvent(gameId, 1, ""),
+		events.NewMoveEvent(gameId, 2, ""),
+		events.NewMoveEvent(gameId, 3, ""),
+	}
+	suite.mockEvents.On("EventsOfTypeForGame", gameId, events.MoveType).Return(fakeMoves).Once()
+
+	suite.mockQueriesCache.On("Store", query).Return().Once()
+
+	suite.systemQueries.AnswerQuery(query)
+	suite.mockQueriesCache.AssertCalled(suite.T(), "Store", query)
 }
 
 func TestSystemQueries(t *testing.T) {

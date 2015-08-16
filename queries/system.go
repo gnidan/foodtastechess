@@ -30,6 +30,7 @@ func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 	}
 
 	query.computeResult(s)
+	s.Cache.Store(query)
 	return query.getResult()
 }
 
