@@ -35,7 +35,6 @@ func (q *boardStateAtTurnQuery) computeResult(queries SystemQueries) {
 	}
 
 	dependentQueries := queries.getDependentQueryLookup(q)
-	log.Debug("%v", dependentQueries)
 	lastPosition := dependentQueries.Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber-1)).(*boardStateAtTurnQuery).Result
 
 	lastMove := dependentQueries.Lookup(MoveAtTurnQuery(q.GameId, q.TurnNumber)).(*moveAtTurnQuery).Result

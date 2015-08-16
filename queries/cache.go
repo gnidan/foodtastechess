@@ -35,9 +35,8 @@ func (c *queriesCache) PostPopulate() error {
 		c.Config.HostAddr, c.Config.Port,
 	)
 
-	log.Debug(url)
-
 	session, err := mgo.Dial(url)
+
 	c.session = session
 	c.collection = session.DB(c.Config.Database).C("queries")
 	return err
@@ -48,12 +47,8 @@ func NewQueriesCache() Cache {
 }
 
 func (c *queriesCache) Get(partial Query) bool {
-	lookup := map[string]string{
-		"hash": partial.hash(),
-	}
-
 	err := c.collection.
-		Find(lookup).
+		Find(lookupFor(partial)).
 		Sort("-computedat").
 		One(partial)
 	if err != nil {
@@ -71,12 +66,23 @@ func (c *queriesCache) Get(partial Query) bool {
 func (c *queriesCache) Store(query Query) {
 	reflect.ValueOf(query).Elem().FieldByName("Hash").SetString(query.hash())
 
-	log.Debug("Storing")
 	err := c.collection.Insert(query)
 	if err != nil {
 		log.Error(fmt.Sprintf("Got error storing: %v", err))
 	}
 }
 
-func (m *queriesCache) Delete(partial Query) {
+func (c *queriesCache) Delete(partial Query) {
+	err := c.collection.Remove(lookupFor(partial))
+	if err != nil {
+		log.Error(
+			fmt.Sprintf("Got error deleting %s: %v", partial.hash(), err),
+		)
+	}
+}
+
+func lookupFor(query Query) map[string]string {
+	return map[string]string{
+		"hash": query.hash(),
+	}
 }
