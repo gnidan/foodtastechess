@@ -14,11 +14,6 @@ type Cache interface {
 	Delete(partial Query)
 }
 
-type cacheEntry struct {
-	hash  string
-	query Query
-}
-
 type queriesCache struct {
 	Config QueriesCacheConfig `inject:"queriesCacheConfig"`
 
@@ -57,9 +52,13 @@ func (c *queriesCache) Get(partial Query) bool {
 	if err != nil {
 		log.Error(fmt.Sprintf("Got error retrieving: %v", err))
 		return false
-	} else {
-		return true
 	}
+
+	canMarkAnswered := reflect.ValueOf(partial).Elem().FieldByName("Answered").CanSet()
+	if canMarkAnswered {
+		reflect.ValueOf(partial).Elem().FieldByName("Answered").SetBool(true)
+	}
+	return true
 }
 
 func (c *queriesCache) Store(query Query) {

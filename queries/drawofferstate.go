@@ -10,7 +10,7 @@ import (
 type drawOfferStateQuery struct {
 	gameId game.Id
 
-	answered bool
+	Answered bool
 	result   drawOfferState
 }
 
@@ -23,7 +23,7 @@ const (
 )
 
 func (q *drawOfferStateQuery) hasResult() bool {
-	return q.answered
+	return q.Answered
 }
 
 func (q *drawOfferStateQuery) getResult() interface{} {
@@ -34,7 +34,7 @@ func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
 	offers := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferType)
 	responses := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferResponseType)
 
-	q.answered = true
+	q.Answered = true
 	if len(responses) == len(offers) {
 		q.result = noDrawOffer
 		return

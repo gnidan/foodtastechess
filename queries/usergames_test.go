@@ -20,10 +20,10 @@ func (suite *UserGamesQueryTestSuite) TestHasResult() {
 	)
 
 	hasResult = UserGamesQuery(playerId).(*userGamesQuery)
-	hasResult.answered = true
+	hasResult.Answered = true
 
 	noResult = UserGamesQuery(playerId).(*userGamesQuery)
-	noResult.answered = false
+	noResult.Answered = false
 
 	assert := assert.New(suite.T())
 	assert.Equal(true, hasResult.hasResult())

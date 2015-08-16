@@ -18,6 +18,12 @@ type QueriesCacheTestSuite struct {
 	cache *queriesCache
 }
 
+type testQuery struct {
+	queryRecord
+
+	Result string
+}
+
 func (suite *QueriesCacheTestSuite) SetupTest() {
 	suite.log = logger.Log("system_test")
 
@@ -59,6 +65,36 @@ func (suite *QueriesCacheTestSuite) TestStore() {
 	assert.Equal(query.Result, partial.Result)
 }
 
+func (suite *QueriesCacheTestSuite) TestRetrieveOrdering() {
+}
+
 func TestQueriesCache(t *testing.T) {
 	suite.Run(t, new(QueriesCacheTestSuite))
+}
+
+func (q *testQuery) hasResult() bool {
+	return false
+}
+
+func (q *testQuery) getResult() interface{} {
+	return nil
+}
+
+func (q *testQuery) getDependentQueries() []Query {
+	return []Query{}
+}
+
+func (q *testQuery) computeResult(sqs SystemQueries) {
+}
+
+func (q *testQuery) isExpired(now interface{}) bool {
+	return false
+}
+
+func (q *testQuery) getExpiration(now interface{}) interface{} {
+	return nil
+}
+
+func (q *testQuery) hash() string {
+	return ""
 }

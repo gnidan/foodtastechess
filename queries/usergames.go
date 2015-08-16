@@ -10,12 +10,12 @@ import (
 type userGamesQuery struct {
 	playerId string
 
-	answered bool
+	Answered bool
 	result   []game.Id
 }
 
 func (q *userGamesQuery) hasResult() bool {
-	return q.answered
+	return q.Answered
 }
 
 func (q *userGamesQuery) getResult() interface{} {
@@ -46,7 +46,7 @@ func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	}
 
 	q.result = activeGameIds
-	q.answered = true
+	q.Answered = true
 }
 
 func (q *userGamesQuery) getDependentQueries() []Query {

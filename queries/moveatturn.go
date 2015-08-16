@@ -10,7 +10,7 @@ type moveAtTurnQuery struct {
 	GameId     game.Id
 	TurnNumber game.TurnNumber
 
-	answered bool
+	Answered bool
 	Result   game.AlgebraicMove
 
 	// Compose a queryRecord
@@ -22,7 +22,7 @@ func (q *moveAtTurnQuery) hash() string {
 }
 
 func (q *moveAtTurnQuery) hasResult() bool {
-	return q.answered
+	return q.Answered
 }
 
 func (q *moveAtTurnQuery) getResult() interface{} {
@@ -33,7 +33,7 @@ func (q *moveAtTurnQuery) computeResult(queries SystemQueries) {
 	moveEvent := queries.getEvents().MoveEventForGameAtTurn(q.GameId, q.TurnNumber)
 
 	q.Result = moveEvent.Move
-	q.answered = true
+	q.Answered = true
 }
 
 func (q *moveAtTurnQuery) getDependentQueries() []Query {

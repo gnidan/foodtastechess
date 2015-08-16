@@ -22,11 +22,11 @@ func (suite *MoveAtTurnQueryTestSuite) TestHasResult() {
 
 	hasResult = MoveAtTurnQuery(gameId, turnNumber).(*moveAtTurnQuery)
 	hasResult.Result = game.AlgebraicMove("Be5")
-	hasResult.answered = true
+	hasResult.Answered = true
 
 	noResult = MoveAtTurnQuery(gameId, turnNumber).(*moveAtTurnQuery)
 	noResult.Result = game.AlgebraicMove("")
-	noResult.answered = false
+	noResult.Answered = false
 
 	assert := assert.New(suite.T())
 	assert.Equal(true, hasResult.hasResult())

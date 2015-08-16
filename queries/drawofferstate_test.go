@@ -20,10 +20,10 @@ func (suite *DrawOfferStateQueryTestSuite) TestHasResult() {
 	)
 
 	hasResult = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
-	hasResult.answered = true
+	hasResult.Answered = true
 
 	noResult = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
-	noResult.answered = false
+	noResult.Answered = false
 
 	assert := assert.New(suite.T())
 	assert.Equal(true, hasResult.hasResult())
