@@ -12,8 +12,8 @@ type QueriesCacheConfig struct {
 
 func NewMongoDockerComposeConfig() QueriesCacheConfig {
 	return QueriesCacheConfig{
-		HostAddr: os.Getenv("MONGODB_PORT_27017_TCP_ADDR"),
-		Port:     os.Getenv("MONGODB_PORT_27017_TCP_PORT"),
+		HostAddr: os.Getenv("MONGO_PORT_27017_TCP_ADDR"),
+		Port:     os.Getenv("MONGO_PORT_27017_TCP_PORT"),
 		Database: "test",
 	}
 }

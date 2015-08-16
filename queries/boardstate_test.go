@@ -18,13 +18,13 @@ func (suite *BoardStateQueryTestSuite) TestHasResult() {
 	)
 
 	hasResult = new(boardStateAtTurnQuery)
-	hasResult.gameId = 5
-	hasResult.turnNumber = 5
-	hasResult.result = "Be5"
+	hasResult.GameId = 5
+	hasResult.TurnNumber = 5
+	hasResult.Result = "Be5"
 
 	noResult = new(boardStateAtTurnQuery)
-	noResult.gameId = 5
-	noResult.turnNumber = 5
+	noResult.GameId = 5
+	noResult.TurnNumber = 5
 
 	assert := assert.New(suite.T())
 	assert.Equal(true, hasResult.hasResult())
@@ -80,9 +80,9 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 		move1 game.AlgebraicMove = "first move"
 
 		moveQuery1 *moveAtTurnQuery = &moveAtTurnQuery{
-			gameId:     gameId,
-			turnNumber: 1,
-			result:     move1,
+			GameId:     gameId,
+			TurnNumber: 1,
+			Result:     move1,
 		}
 
 		query0 *boardStateAtTurnQuery
@@ -97,7 +97,7 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 	query1 = BoardAtTurnQuery(gameId, 1).(*boardStateAtTurnQuery)
 
 	query0.computeResult(suite.mockSystemQueries)
-	assert.Equal(position0, query0.result)
+	assert.Equal(position0, query0.Result)
 
 	suite.mockSystemQueries.On("getDependentQueryLookup", query1).Return(NewQueryLookup(
 		moveQuery1,
@@ -106,7 +106,7 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 
 	suite.mockGameCalculator.On("AfterMove", position0, move1).Return(position1)
 	query1.computeResult(suite.mockSystemQueries)
-	assert.Equal(position1, query1.result)
+	assert.Equal(position1, query1.Result)
 }
 
 func TestBoardStateQueryTestSuite(t *testing.T) {

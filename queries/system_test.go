@@ -66,7 +66,7 @@ func (suite *SystemQueriesTestSuite) TestLookup() {
 		Run(
 		func(args mock.Arguments) {
 			partial := args.Get(0).(*turnNumberQuery)
-			partial.result = expected
+			partial.Result = expected
 		})
 
 	actual := suite.systemQueries.AnswerQuery(query).(game.TurnNumber)
@@ -119,7 +119,7 @@ func (suite *SystemQueriesTestSuite) TestDependentQueries() {
 		Run(
 		func(args mock.Arguments) {
 			partial := args.Get(0).(*boardStateAtTurnQuery)
-			partial.result = previousBoardState
+			partial.Result = previousBoardState
 		})
 
 	suite.mockQueriesCache.
@@ -128,7 +128,7 @@ func (suite *SystemQueriesTestSuite) TestDependentQueries() {
 		Run(
 		func(args mock.Arguments) {
 			partial := args.Get(0).(*moveAtTurnQuery)
-			partial.result = lastMove
+			partial.Result = lastMove
 		})
 
 	suite.mockQueriesCache.

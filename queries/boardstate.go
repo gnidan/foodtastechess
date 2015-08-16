@@ -7,52 +7,55 @@ import (
 )
 
 type boardStateAtTurnQuery struct {
-	gameId     game.Id
-	turnNumber game.TurnNumber
+	GameId     game.Id
+	TurnNumber game.TurnNumber
 
-	result game.FEN
+	Result game.FEN
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 func (q *boardStateAtTurnQuery) hash() string {
-	return fmt.Sprintf("boardstate:%v:%v", q.gameId, q.turnNumber)
+	return fmt.Sprintf("boardstate:%v:%v", q.GameId, q.TurnNumber)
 }
 
 func (q *boardStateAtTurnQuery) hasResult() bool {
-	return q.result != ""
+	return q.Result != ""
 }
 
 func (q *boardStateAtTurnQuery) getResult() interface{} {
-	return q.result
+	return q.Result
 }
 
 func (q *boardStateAtTurnQuery) computeResult(queries SystemQueries) {
-	if q.turnNumber == 0 {
-		q.result = queries.getGameCalculator().StartingFEN()
+	if q.TurnNumber == 0 {
+		q.Result = queries.getGameCalculator().StartingFEN()
 		return
 	}
 
 	dependentQueries := queries.getDependentQueryLookup(q)
 	log.Debug("%v", dependentQueries)
-	lastPosition := dependentQueries.Lookup(BoardAtTurnQuery(q.gameId, q.turnNumber-1)).(*boardStateAtTurnQuery).result
+	lastPosition := dependentQueries.Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber-1)).(*boardStateAtTurnQuery).Result
 
-	lastMove := dependentQueries.Lookup(MoveAtTurnQuery(q.gameId, q.turnNumber)).(*moveAtTurnQuery).result
+	lastMove := dependentQueries.Lookup(MoveAtTurnQuery(q.GameId, q.TurnNumber)).(*moveAtTurnQuery).Result
 
-	q.result = queries.getGameCalculator().AfterMove(lastPosition, lastMove)
+	q.Result = queries.getGameCalculator().AfterMove(lastPosition, lastMove)
 }
 
 func (q *boardStateAtTurnQuery) getDependentQueries() []Query {
-	if q.turnNumber == 0 {
+	if q.TurnNumber == 0 {
 		return []Query{}
 	} else {
 		return []Query{
-			BoardAtTurnQuery(q.gameId, q.turnNumber-1),
-			MoveAtTurnQuery(q.gameId, q.turnNumber),
+			BoardAtTurnQuery(q.GameId, q.TurnNumber-1),
+			MoveAtTurnQuery(q.GameId, q.TurnNumber),
 		}
 	}
 }
 
 func (q *boardStateAtTurnQuery) GoString() string {
 	return fmt.Sprintf(
-		"BoardAtTurn(%d, game=%d)", q.turnNumber, q.gameId,
+		"BoardAtTurn(%d, game=%d)", q.TurnNumber, q.GameId,
 	)
 }

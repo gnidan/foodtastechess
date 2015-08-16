@@ -1,6 +1,8 @@
 package queries
 
 import (
+	"time"
+
 	"foodtastechess/game"
 	"foodtastechess/logger"
 )
@@ -20,6 +22,11 @@ type Query interface {
 	hash() string
 }
 
+type queryRecord struct {
+	Hash       string
+	ComputedAt time.Time
+}
+
 type validMovesAtTurnQuery struct {
 	gameId game.Id
 
@@ -28,22 +35,22 @@ type validMovesAtTurnQuery struct {
 
 func TurnNumberQuery(id game.Id) Query {
 	return &turnNumberQuery{
-		gameId: id,
-		result: -1,
+		GameId: id,
+		Result: -1,
 	}
 }
 
 func BoardAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	return &boardStateAtTurnQuery{
-		gameId:     id,
-		turnNumber: turnNumber,
+		GameId:     id,
+		TurnNumber: turnNumber,
 	}
 }
 
 func MoveAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	return &moveAtTurnQuery{
-		gameId:     id,
-		turnNumber: turnNumber,
+		GameId:     id,
+		TurnNumber: turnNumber,
 	}
 }
 

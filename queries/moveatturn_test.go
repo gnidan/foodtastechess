@@ -21,11 +21,11 @@ func (suite *MoveAtTurnQueryTestSuite) TestHasResult() {
 	)
 
 	hasResult = MoveAtTurnQuery(gameId, turnNumber).(*moveAtTurnQuery)
-	hasResult.result = game.AlgebraicMove("Be5")
+	hasResult.Result = game.AlgebraicMove("Be5")
 	hasResult.answered = true
 
 	noResult = MoveAtTurnQuery(gameId, turnNumber).(*moveAtTurnQuery)
-	noResult.result = game.AlgebraicMove("")
+	noResult.Result = game.AlgebraicMove("")
 	noResult.answered = false
 
 	assert := assert.New(suite.T())
@@ -70,7 +70,7 @@ func (suite *MoveAtTurnQueryTestSuite) TestComputeResult() {
 
 	query.computeResult(suite.mockSystemQueries)
 	assert.Equal(true, query.hasResult())
-	assert.Equal(move, query.result)
+	assert.Equal(move, query.Result)
 }
 
 func TestMoveAtTurnQueryTestSuite(t *testing.T) {

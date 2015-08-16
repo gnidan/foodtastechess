@@ -8,26 +8,29 @@ import (
 )
 
 type turnNumberQuery struct {
-	gameId game.Id
+	GameId game.Id
 
-	result game.TurnNumber
+	Result game.TurnNumber
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 func (q *turnNumberQuery) hash() string {
-	return fmt.Sprintf("turnnumber:%v", q.gameId)
+	return fmt.Sprintf("turnnumber:%v", q.GameId)
 }
 
 func (q *turnNumberQuery) hasResult() bool {
-	return q.result != -1
+	return q.Result != -1
 }
 
 func (q *turnNumberQuery) getResult() interface{} {
-	return q.result
+	return q.Result
 }
 
 func (q *turnNumberQuery) computeResult(queries SystemQueries) {
-	moves := queries.getEvents().EventsOfTypeForGame(q.gameId, events.MoveType)
-	q.result = game.TurnNumber(len(moves))
+	moves := queries.getEvents().EventsOfTypeForGame(q.GameId, events.MoveType)
+	q.Result = game.TurnNumber(len(moves))
 }
 
 func (q *turnNumberQuery) getDependentQueries() []Query {

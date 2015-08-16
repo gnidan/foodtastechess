@@ -7,15 +7,18 @@ import (
 )
 
 type moveAtTurnQuery struct {
-	gameId     game.Id
-	turnNumber game.TurnNumber
+	GameId     game.Id
+	TurnNumber game.TurnNumber
 
 	answered bool
-	result   game.AlgebraicMove
+	Result   game.AlgebraicMove
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 func (q *moveAtTurnQuery) hash() string {
-	return fmt.Sprintf("move:%v:%v", q.gameId, q.turnNumber)
+	return fmt.Sprintf("move:%v:%v", q.GameId, q.TurnNumber)
 }
 
 func (q *moveAtTurnQuery) hasResult() bool {
@@ -23,13 +26,13 @@ func (q *moveAtTurnQuery) hasResult() bool {
 }
 
 func (q *moveAtTurnQuery) getResult() interface{} {
-	return q.result
+	return q.Result
 }
 
 func (q *moveAtTurnQuery) computeResult(queries SystemQueries) {
-	moveEvent := queries.getEvents().MoveEventForGameAtTurn(q.gameId, q.turnNumber)
+	moveEvent := queries.getEvents().MoveEventForGameAtTurn(q.GameId, q.TurnNumber)
 
-	q.result = moveEvent.Move
+	q.Result = moveEvent.Move
 	q.answered = true
 }
 

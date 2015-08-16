@@ -3,6 +3,7 @@ package queries
 import (
 	"fmt"
 	"gopkg.in/mgo.v2"
+	"reflect"
 
 	"foodtastechess/directory"
 )
@@ -11,6 +12,11 @@ type Cache interface {
 	Get(partial Query) bool
 	Store(query Query)
 	Delete(partial Query)
+}
+
+type cacheEntry struct {
+	hash  string
+	query Query
 }
 
 type queriesCache struct {
@@ -34,6 +40,8 @@ func (c *queriesCache) PostPopulate() error {
 		c.Config.HostAddr, c.Config.Port,
 	)
 
+	log.Debug(url)
+
 	session, err := mgo.Dial(url)
 	c.session = session
 	c.collection = session.DB(c.Config.Database).C("queries")
@@ -45,10 +53,23 @@ func NewQueriesCache() Cache {
 }
 
 func (c *queriesCache) Get(partial Query) bool {
-	return false
+	err := c.collection.Find(map[string]string{"hash": partial.hash()}).One(partial)
+	if err != nil {
+		log.Error(fmt.Sprintf("Got error retrieving: %v", err))
+		return false
+	} else {
+		return true
+	}
 }
 
 func (c *queriesCache) Store(query Query) {
+	reflect.ValueOf(query).Elem().FieldByName("Hash").SetString(query.hash())
+
+	log.Debug("Storing")
+	err := c.collection.Insert(query)
+	if err != nil {
+		log.Error(fmt.Sprintf("Got error storing: %v", err))
+	}
 }
 
 func (m *queriesCache) Delete(partial Query) {
