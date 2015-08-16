@@ -97,6 +97,50 @@ func (suite *SystemQueriesTestSuite) TestCompute() {
 	assert.Equal(expected, actual)
 }
 
+func (suite *SystemQueriesTestSuite) TestDependentQueries() {
+	assert := assert.New(suite.T())
+
+	var (
+		gameId                   game.Id            = 5
+		turnNumber               game.TurnNumber    = 11
+		previousBoardState       game.FEN           = "previous!"
+		previousBoardAtTurnQuery Query              = BoardAtTurnQuery(gameId, turnNumber-1)
+		lastMove                 game.AlgebraicMove = "move!"
+		lastMoveQuery            Query              = MoveAtTurnQuery(gameId, turnNumber)
+		expectedState            game.FEN           = "current!"
+		query                    Query              = BoardAtTurnQuery(gameId, turnNumber)
+	)
+
+	suite.mockQueriesCache.
+		On("Get", previousBoardAtTurnQuery).
+		Return(true).
+		Run(
+		func(args mock.Arguments) {
+			partial := args.Get(0).(*boardStateAtTurnQuery)
+			partial.result = previousBoardState
+		})
+
+	suite.mockQueriesCache.
+		On("Get", lastMoveQuery).
+		Return(true).
+		Run(
+		func(args mock.Arguments) {
+			partial := args.Get(0).(*moveAtTurnQuery)
+			partial.result = lastMove
+		})
+
+	suite.mockQueriesCache.
+		On("Get", query).
+		Return(false)
+
+	suite.mockGameCalculator.
+		On("AfterMove", previousBoardState, lastMove).
+		Return(expectedState)
+
+	actualState := suite.systemQueries.AnswerQuery(query).(game.FEN)
+	assert.Equal(expectedState, actualState)
+}
+
 func TestSystemQueries(t *testing.T) {
 	suite.Run(t, new(SystemQueriesTestSuite))
 }

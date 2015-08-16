@@ -34,7 +34,12 @@ func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 }
 
 func (s *SystemQueryService) getDependentQueryLookup(query Query) QueryLookup {
-	return NewQueryLookup()
+	dependentQueries := query.getDependentQueries()
+	for _, dependentQuery := range dependentQueries {
+		s.AnswerQuery(dependentQuery)
+	}
+
+	return NewQueryLookup(dependentQueries...)
 }
 
 func (s *SystemQueryService) getGameCalculator() game.GameCalculator {
