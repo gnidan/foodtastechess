@@ -19,15 +19,6 @@ type QueriesCacheTestSuite struct {
 	cache *queriesCache
 }
 
-type testQuery struct {
-	queryRecord `bson:",inline"`
-
-	Param interface{}
-
-	Answered bool
-	Result   interface{}
-}
-
 func (suite *QueriesCacheTestSuite) SetupTest() {
 	suite.log = logger.Log("system_test")
 
@@ -115,6 +106,22 @@ func TestQueriesCache(t *testing.T) {
 	suite.Run(t, new(QueriesCacheTestSuite))
 }
 
+// testQuery is a test struct that implements Query, so we can use it
+// as a pretend query.
+type testQuery struct {
+	queryRecord `bson:",inline"`
+
+	Param interface{}
+
+	Answered bool
+	Result   interface{}
+}
+
+// newTestQuery creates a new testQuery with some parameters.
+// if only 1 param is provided, testQuery.param will be equal
+// to that parameter.
+// otherwise, testQuery's param will be set to a slice of
+// params.
 func newTestQuery(params ...interface{}) *testQuery {
 	query := new(testQuery)
 
