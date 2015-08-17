@@ -16,6 +16,13 @@ type SystemQueryService struct {
 	GameCalculator game.GameCalculator `inject:"gameCalculator"`
 	Events         events.Events       `inject:"eventsService"`
 	Cache          Cache               `inject:"queriesCache"`
+
+	Complete bool
+}
+
+// just until things get implemented
+func (s *SystemQueryService) IsComplete() bool {
+	return s.Complete
 }
 
 func NewSystemQueryService() SystemQueries {

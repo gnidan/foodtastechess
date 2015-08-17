@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
+	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
 	"foodtastechess/game"
@@ -14,6 +15,7 @@ import (
 // Base-class test suite
 type QueryTestSuite struct {
 	suite.Suite
+	config.ConfigTestProvider
 
 	log                *logging.Logger
 	mockSystemQueries  *MockSystemQueries
@@ -34,6 +36,8 @@ func (suite *QueryTestSuite) SetupTest() {
 	)
 
 	d = directory.New()
+	suite.InitTestConfig()
+	d.AddService("configProvider", suite.ConfigProvider)
 	d.AddService("systemQueries", &systemQueries)
 	d.AddService("gameCalculator", &gameCalculator)
 	d.AddService("eventsService", &events)

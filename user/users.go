@@ -6,7 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"foodtastechess/config"
-	"foodtastechess/directory"
 )
 
 type Users interface {
@@ -23,14 +22,6 @@ type UsersService struct {
 
 func NewUsers() Users {
 	return new(UsersService)
-}
-
-func (s *UsersService) PreProvide(provide directory.Provider) error {
-	err := provide("databaseConfig",
-		config.NewMariaDockerComposeConfig(),
-	)
-
-	return err
 }
 
 func (s *UsersService) PostPopulate() error {
