@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"reflect"
 
-	"foodtastechess/directory"
+	"foodtastechess/config"
 )
 
 type Cache interface {
@@ -15,18 +15,10 @@ type Cache interface {
 }
 
 type queriesCache struct {
-	Config QueriesCacheConfig `inject:"queriesCacheConfig"`
+	Config config.QueriesCacheConfig `inject:"cacheConfig"`
 
 	session    *mgo.Session
 	collection *mgo.Collection
-}
-
-func (c *queriesCache) PreProvide(provide directory.Provider) error {
-	err := provide("queriesCacheConfig",
-		NewMongoDockerComposeConfig(),
-	)
-
-	return err
 }
 
 func (c *queriesCache) PostPopulate() error {

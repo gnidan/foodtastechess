@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"foodtastechess/directory"
+	"foodtastechess/config"
 	"foodtastechess/logger"
 	sess "foodtastechess/server/session"
 	"foodtastechess/user"
@@ -22,27 +22,15 @@ type Authentication interface {
 }
 
 type authService struct {
-	Config        AuthConfig         `inject:"authConfig"`
-	SessionConfig sess.SessionConfig `inject:"sessionConfig"`
-	Users         user.Users         `inject:"users"`
+	Config        config.AuthConfig    `inject:"authConfig"`
+	SessionConfig config.SessionConfig `inject:"sessionConfig"`
+	Users         user.Users           `inject:"users"`
 
 	provider goth.Provider
 }
 
 func New() Authentication {
 	return new(authService)
-}
-
-// PreProvide is just for creating a fake auth config at this point
-func (s *authService) PreProvide(provider directory.Provider) error {
-	err := provider("authConfig", AuthConfig{
-		GoogleKey:    "419303763151-c57q5rf3omkr7n3f45a5tfavisovo8jr.apps.googleusercontent.com",
-		GoogleSecret: "gDkhFl3VXnVbMBGk7B_MeI2z",
-		CallbackUrl:  "http://local.drama9.com:8181/auth/callback",
-		SessionKey:   "auth",
-	})
-
-	return err
 }
 
 // PostPopulate sets up the oauth provider

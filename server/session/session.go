@@ -3,6 +3,8 @@ package session
 import (
 	"github.com/gorilla/sessions"
 	"net/http"
+
+	"foodtastechess/config"
 )
 
 type Session interface {
@@ -12,13 +14,13 @@ type Session interface {
 }
 
 type CookieSession struct {
-	config SessionConfig
+	config config.SessionConfig
 	store  sessions.Store
 	res    http.ResponseWriter
 	req    *http.Request
 }
 
-func GetSession(config SessionConfig, res http.ResponseWriter, req *http.Request) Session {
+func GetSession(config config.SessionConfig, res http.ResponseWriter, req *http.Request) Session {
 	session := new(CookieSession)
 	session.config = config
 	session.store = sessions.NewCookieStore([]byte(config.Secret))

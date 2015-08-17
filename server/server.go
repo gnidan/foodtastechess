@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
+	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/logger"
 	"foodtastechess/server/api"
 	"foodtastechess/server/auth"
-	"foodtastechess/server/session"
 )
 
 var (
@@ -23,7 +23,7 @@ type Server struct {
 	server   *graceful.Server
 	Api      *api.ChessApi       `inject:"chessApi"`
 	Auth     auth.Authentication `inject:"auth"`
-	Config   ServerConfig        `inject:"serverConfig"`
+	Config   config.ServerConfig `inject:"serverConfig"`
 	StopChan chan bool           `inject:"stopChan"`
 }
 
@@ -32,22 +32,10 @@ func New() *Server {
 }
 
 func (s *Server) PreProvide(provide directory.Provider) error {
-	provide("serverConfig", ServerConfig{
-		BindAddress: "0.0.0.0:8181",
-	})
-
 	err := provide("chessApi", api.New())
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))
 		return err
-	}
-
-	err = provide("sessionConfig", session.SessionConfig{
-		SessionName: "ftc_session",
-		Secret:      "secret_123",
-	})
-	if err != nil {
-		log.Error(fmt.Sprintf("Could not provide session config: %v", err))
 	}
 
 	err = provide("auth", auth.New())

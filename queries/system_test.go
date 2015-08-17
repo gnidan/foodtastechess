@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 
+	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
 	"foodtastechess/game"
@@ -31,11 +32,13 @@ func (suite *SystemQueriesTestSuite) SetupTest() {
 		gameCalculator MockGameCalculator
 		events         MockEventsService
 		queriesCache   MockQueriesCache
+		configProvider config.ConfigProvider = config.NewConfigProvider("testconfig", "../")
 	)
 
 	systemQueries := NewSystemQueryService().(*SystemQueryService)
 
 	d = directory.New()
+	d.AddService("configProvider", configProvider)
 	d.AddService("systemQueries", systemQueries)
 	d.AddService("gameCalculator", &gameCalculator)
 	d.AddService("eventsService", &events)

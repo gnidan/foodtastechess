@@ -8,7 +8,7 @@ import (
 
 type LoggerConfig struct {
 	Noise    string
-	Level    string
+	Level    int
 	Location string
 }
 
@@ -22,8 +22,8 @@ func InitLog(C LoggerConfig) {
 	switch C.Location {
 	case "stderr":
 		location = os.Stderr
-		//   default:
-		//       location=LoggerConfig.Location
+	case "stdout":
+		location = os.Stdout
 	}
 
 	backend := logging.NewLogBackend(location, "", 0)
@@ -31,17 +31,17 @@ func InitLog(C LoggerConfig) {
 
 	var level logging.Level
 	switch C.Level {
-	case "1":
+	case 1:
 		level = logging.CRITICAL
-	case "2":
+	case 2:
 		level = logging.ERROR
-	case "3":
+	case 3:
 		level = logging.WARNING
-	case "4":
+	case 4:
 		level = logging.NOTICE
-	case "5":
+	case 5:
 		level = logging.INFO
-	case "6":
+	case 6:
 		level = logging.DEBUG
 	}
 	logging.SetLevel(level, "")

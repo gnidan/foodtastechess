@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/logger"
 )
@@ -20,7 +21,7 @@ type QueriesCacheTestSuite struct {
 }
 
 func (suite *QueriesCacheTestSuite) SetupTest() {
-	suite.log = logger.Log("system_test")
+	suite.log = logger.Log("cache_test")
 
 	var (
 		d     directory.Directory
@@ -30,6 +31,7 @@ func (suite *QueriesCacheTestSuite) SetupTest() {
 	cache = NewQueriesCache().(*queriesCache)
 
 	d = directory.New()
+	d.AddService("configProvider", config.NewConfigProvider("testconfig", "../"))
 	d.AddService("queriesCache", cache)
 
 	if err := d.Start(); err != nil {
@@ -102,10 +104,6 @@ func (suite *QueriesCacheTestSuite) TestDelete() {
 	assert.Equal(false, found)
 }
 
-func TestQueriesCache(t *testing.T) {
-	suite.Run(t, new(QueriesCacheTestSuite))
-}
-
 // testQuery is a test struct that implements Query, so we can use it
 // as a pretend query.
 type testQuery struct {
@@ -172,4 +170,9 @@ func (q *testQuery) isExpired(now interface{}) bool {
 
 func (q *testQuery) getExpiration(now interface{}) interface{} {
 	return nil
+}
+
+// Entrypoint
+func TestQueriesCache(t *testing.T) {
+	suite.Run(t, new(QueriesCacheTestSuite))
 }
