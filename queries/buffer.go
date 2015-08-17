@@ -2,6 +2,7 @@ package queries
 
 import (
 	"github.com/op/go-logging"
+	"reflect"
 
 	"foodtastechess/events"
 	"foodtastechess/logger"
@@ -9,7 +10,7 @@ import (
 
 type QueryBuffer struct {
 	log           *logging.Logger
-	Queries       chan Query
+	queries       chan Query
 	SystemQueries SystemQueries `inject:"systemQueries"`
 	stopChan      chan bool
 }
@@ -17,7 +18,7 @@ type QueryBuffer struct {
 func NewQueryBuffer() events.EventSubscriber {
 	buffer := new(QueryBuffer)
 	buffer.log = logger.Log("querybuffer")
-	buffer.Queries = make(chan Query, 100)
+	buffer.queries = make(chan Query, 100)
 	buffer.stopChan = make(chan bool, 1)
 	return buffer
 }
@@ -31,8 +32,9 @@ func (b *QueryBuffer) Start() error {
 func (b *QueryBuffer) Process() {
 	for {
 		select {
-		case <-b.Queries:
+		case query := <-b.queries:
 			b.log.Info("Got query")
+			b.SystemQueries.computeAnswer(query, false)
 		case <-b.stopChan:
 			return
 		}
@@ -47,9 +49,42 @@ func (b *QueryBuffer) Stop() error {
 }
 
 func (b *QueryBuffer) Receive(event events.Event) error {
+	queries := translateEvent(event)
+
+	for _, query := range queries {
+		b.queries <- query
+	}
+
 	return nil
 }
 
 func translateEvent(event events.Event) []Query {
-	return []Query{}
+	switch reflect.TypeOf(event) {
+	case reflect.TypeOf(events.MoveEvent{}):
+		return []Query{
+			TurnNumberQuery(event.GameId()),
+		}
+	case reflect.TypeOf(events.GameStartEvent{}):
+		gameStart := event.(*events.GameStartEvent)
+		return []Query{
+			UserGamesQuery(gameStart.WhiteId),
+			UserGamesQuery(gameStart.BlackId),
+		}
+	case reflect.TypeOf(events.GameEndEvent{}):
+		gameEnd := event.(*events.GameStartEvent)
+		return []Query{
+			UserGamesQuery(gameEnd.WhiteId),
+			UserGamesQuery(gameEnd.BlackId),
+		}
+	case reflect.TypeOf(events.DrawOfferEvent{}):
+		return []Query{
+			DrawOfferStateQuery(event.GameId()),
+		}
+	case reflect.TypeOf(events.DrawOfferResponseEvent{}):
+		return []Query{
+			DrawOfferStateQuery(event.GameId()),
+		}
+	default:
+		return []Query{}
+	}
 }

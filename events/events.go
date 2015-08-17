@@ -32,7 +32,9 @@ func (e MoveEvent) GameId() game.Id {
 }
 
 type GameStartEvent struct {
-	gameId game.Id
+	gameId  game.Id
+	WhiteId string
+	BlackId string
 }
 
 func (e GameStartEvent) GameId() game.Id {
@@ -40,7 +42,9 @@ func (e GameStartEvent) GameId() game.Id {
 }
 
 type GameEndEvent struct {
-	gameId game.Id
+	gameId  game.Id
+	WhiteId string
+	BlackId string
 }
 
 func (e GameEndEvent) GameId() game.Id {
@@ -77,12 +81,12 @@ func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.Algebrai
 	return MoveEvent{gameId, turnNumber, move}
 }
 
-func NewGameStartEvent(gameId game.Id) Event {
-	return GameStartEvent{gameId}
+func NewGameStartEvent(gameId game.Id, whiteId, blackId string) Event {
+	return GameStartEvent{gameId, whiteId, blackId}
 }
 
-func NewGameEndEvent(gameId game.Id) Event {
-	return GameEndEvent{gameId}
+func NewGameEndEvent(gameId game.Id, whiteId, blackId string) Event {
+	return GameEndEvent{gameId, whiteId, blackId}
 }
 
 func NewDrawOfferEvent(gameId game.Id, color game.Color) Event {

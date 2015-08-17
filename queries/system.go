@@ -7,6 +7,7 @@ import (
 
 type SystemQueries interface {
 	AnswerQuery(query Query) interface{}
+	computeAnswer(query Query, skipSearch bool)
 	getDependentQueryLookup(query Query) QueryLookup
 	getGameCalculator() game.GameCalculator
 	getEvents() events.Events

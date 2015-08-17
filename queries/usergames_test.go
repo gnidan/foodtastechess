@@ -57,11 +57,11 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	)
 
 	for _, id := range activeGames {
-		gameStarts = append(gameStarts, events.NewGameStartEvent(id))
+		gameStarts = append(gameStarts, events.NewGameStartEvent(id, playerId, playerId))
 	}
 	for _, id := range finishedGames {
-		gameStarts = append(gameStarts, events.NewGameStartEvent(id))
-		gameEnds = append(gameEnds, events.NewGameEndEvent(id))
+		gameStarts = append(gameStarts, events.NewGameStartEvent(id, playerId, playerId))
+		gameEnds = append(gameEnds, events.NewGameEndEvent(id, playerId, playerId))
 	}
 
 	suite.mockEvents.

@@ -65,11 +65,15 @@ type MockSystemQueries struct {
 	Cache          Cache               `inject:"queriesCache"`
 }
 
-// ComputeAnswer records the call with Query and returns the pre-configured
+// Answer records the call with Query and returns the pre-configured
 // mock answer
 func (m *MockSystemQueries) AnswerQuery(query Query) interface{} {
 	args := m.Called(query)
 	return args.Get(0)
+}
+
+func (m *MockSystemQueries) computeAnswer(query Query, skipSearch bool) {
+	m.Called(query, skipSearch)
 }
 
 func (m *MockSystemQueries) getDependentQueryLookup(query Query) QueryLookup {
