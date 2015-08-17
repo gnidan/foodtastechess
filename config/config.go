@@ -166,3 +166,11 @@ func (cfg *viperProvider) substituteEnvVars(config interface{}) {
 
 	}
 }
+
+type ConfigTestProvider struct {
+	ConfigProvider ConfigProvider
+}
+
+func (c *ConfigTestProvider) InitTestConfig() {
+	c.ConfigProvider = NewConfigProvider("testconfig", "../")
+}

@@ -15,12 +15,14 @@ import (
 
 type QueriesCacheTestSuite struct {
 	suite.Suite
+	config.ConfigTestProvider
 
 	log   *logging.Logger
 	cache *queriesCache
 }
 
 func (suite *QueriesCacheTestSuite) SetupTest() {
+	suite.InitTestConfig()
 	suite.log = logger.Log("cache_test")
 
 	var (
@@ -31,7 +33,7 @@ func (suite *QueriesCacheTestSuite) SetupTest() {
 	cache = NewQueriesCache().(*queriesCache)
 
 	d = directory.New()
-	d.AddService("configProvider", config.NewConfigProvider("testconfig", "../"))
+	d.AddService("configProvider", suite.ConfigProvider)
 	d.AddService("queriesCache", cache)
 
 	if err := d.Start(); err != nil {

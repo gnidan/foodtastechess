@@ -18,6 +18,8 @@ services:
        MYSQL_USER: ftc
        MYSQL_PASSWORD: 3JsHYycqAa7qhA
        MYSQL_DATABASE: foodtastechess
+   - id: mongo
+     tag: 3.0.4
 
 
 build:
@@ -61,8 +63,7 @@ build:
     - script:
         name: go test
         code: |
-          go test -cover foodtastechess/queries
-          #go test -cover ./...
+          go test -cover ./...
 
   after-steps:
         - slack-notifier:

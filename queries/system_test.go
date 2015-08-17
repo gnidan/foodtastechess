@@ -16,6 +16,7 @@ import (
 
 type SystemQueriesTestSuite struct {
 	suite.Suite
+	config.ConfigTestProvider
 
 	log                *logging.Logger
 	mockGameCalculator *MockGameCalculator
@@ -32,13 +33,13 @@ func (suite *SystemQueriesTestSuite) SetupTest() {
 		gameCalculator MockGameCalculator
 		events         MockEventsService
 		queriesCache   MockQueriesCache
-		configProvider config.ConfigProvider = config.NewConfigProvider("testconfig", "../")
 	)
 
 	systemQueries := NewSystemQueryService().(*SystemQueryService)
 
 	d = directory.New()
-	d.AddService("configProvider", configProvider)
+	suite.InitTestConfig()
+	d.AddService("configProvider", suite.ConfigProvider)
 	d.AddService("systemQueries", systemQueries)
 	d.AddService("gameCalculator", &gameCalculator)
 	d.AddService("eventsService", &events)
