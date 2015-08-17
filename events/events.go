@@ -1,98 +1,108 @@
 package events
 
 import (
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	"github.com/op/go-logging"
+
+	"foodtastechess/config"
 	"foodtastechess/game"
+	"foodtastechess/logger"
 )
+
+var tablePrefix string = ""
 
 type Events interface {
 	Receive(event Event) error
 
 	EventsForGame(gameId game.Id) []Event
-	EventsOfTypeForGame(gameId game.Id, eventType string) []Event
-	EventsOfTypeForPlayer(userId string, eventType string) []Event
-	MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) MoveEvent
+	EventsOfTypeForGame(gameId game.Id, eventType EventType) []Event
+	EventsOfTypeForPlayer(userId string, eventType EventType) []Event
+	MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) Event
 }
 
 type EventSubscriber interface {
 	Receive(event Event) error
 }
 
-type Event interface {
-	GameId() game.Id
+type EventsService struct {
+	Config     config.DatabaseConfig `inject:"databaseConfig"`
+	Subscriber EventSubscriber       `inject:"eventSubscriber"`
+
+	log *logging.Logger
+	db  gorm.DB
 }
 
-type MoveEvent struct {
-	gameId     game.Id
-	TurnNumber game.TurnNumber
-	Move       game.AlgebraicMove
+func (s *EventsService) PostPopulate() error {
+	// hook for test-suite, make a global table prefix if our config
+	// defines it
+	tablePrefix = s.Config.Prefix
+
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True",
+		s.Config.Username, s.Config.Password,
+		s.Config.HostAddr, s.Config.Port,
+		s.Config.Database,
+	)
+
+	db, err := gorm.Open("mysql", dsn)
+
+	db.AutoMigrate(&Event{})
+
+	db.LogMode(true)
+
+	s.db = db
+
+	return err
 }
 
-func (e MoveEvent) GameId() game.Id {
-	return e.gameId
+func NewEvents() Events {
+	service := new(EventsService)
+	service.log = logger.Log("events")
+	return service
 }
 
-type GameStartEvent struct {
-	gameId  game.Id
-	WhiteId string
-	BlackId string
+func (s *EventsService) Receive(event Event) error {
+	var partial Event = event
+
+	s.db.Create(&event)
+
+	s.Subscriber.Receive(partial)
+
+	return nil
 }
 
-func (e GameStartEvent) GameId() game.Id {
-	return e.gameId
+func (s *EventsService) EventsForGame(gameId game.Id) []Event {
+	var events []Event
+	s.db.Where(&Event{GameId: gameId}).Find(&events)
+	return events
 }
 
-type GameEndEvent struct {
-	gameId  game.Id
-	WhiteId string
-	BlackId string
+func (s *EventsService) EventsOfTypeForGame(gameId game.Id, eventType EventType) []Event {
+	var events []Event
+	s.db.Where(&Event{GameId: gameId, Type: eventType}).Find(&events)
+	return events
 }
 
-func (e GameEndEvent) GameId() game.Id {
-	return e.gameId
+func (s *EventsService) EventsOfTypeForPlayer(userId string, eventType EventType) []Event {
+	var events []Event
+	s.db.
+		Where(&Event{Type: eventType, WhiteId: userId}).
+		Or(&Event{Type: eventType, BlackId: userId}).
+		Find(&events)
+	return events
 }
 
-type DrawOfferEvent struct {
-	gameId game.Id
-	Color  game.Color
-}
-
-func (e DrawOfferEvent) GameId() game.Id {
-	return e.gameId
-}
-
-type DrawOfferResponseEvent struct {
-	gameId game.Id
-	accept bool
-}
-
-func (e DrawOfferResponseEvent) GameId() game.Id {
-	return e.gameId
-}
-
-const (
-	MoveType              = "move"
-	GameStartType         = "game:start"
-	GameEndType           = "game:end"
-	DrawOfferType         = "offer:create"
-	DrawOfferResponseType = "offer:respond"
-)
-
-func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.AlgebraicMove) Event {
-	return MoveEvent{gameId, turnNumber, move}
-}
-
-func NewGameStartEvent(gameId game.Id, whiteId, blackId string) Event {
-	return GameStartEvent{gameId, whiteId, blackId}
-}
-
-func NewGameEndEvent(gameId game.Id, whiteId, blackId string) Event {
-	return GameEndEvent{gameId, whiteId, blackId}
-}
-
-func NewDrawOfferEvent(gameId game.Id, color game.Color) Event {
-	return DrawOfferEvent{gameId, color}
-}
-
-func NewDrawOfferResponseEvent(gameId game.Id, accept bool) Event {
-	return DrawOfferResponseEvent{gameId, accept}
+func (s *EventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) Event {
+	var event Event
+	s.db.
+		Where(
+		&Event{
+			Type:       MoveType,
+			GameId:     gameId,
+			TurnNumber: turnNumber,
+		}).
+		First(&event)
+	return event
 }

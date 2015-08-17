@@ -2,7 +2,6 @@ package queries
 
 import (
 	"github.com/op/go-logging"
-	"reflect"
 
 	"foodtastechess/events"
 	"foodtastechess/logger"
@@ -59,30 +58,28 @@ func (b *QueryBuffer) Receive(event events.Event) error {
 }
 
 func translateEvent(event events.Event) []Query {
-	switch reflect.TypeOf(event) {
-	case reflect.TypeOf(events.MoveEvent{}):
+	switch event.Type {
+	case events.MoveType:
 		return []Query{
-			TurnNumberQuery(event.GameId()),
+			TurnNumberQuery(event.GameId),
 		}
-	case reflect.TypeOf(events.GameStartEvent{}):
-		gameStart := event.(*events.GameStartEvent)
+	case events.GameStartType:
 		return []Query{
-			UserGamesQuery(gameStart.WhiteId),
-			UserGamesQuery(gameStart.BlackId),
+			UserGamesQuery(event.WhiteId),
+			UserGamesQuery(event.BlackId),
 		}
-	case reflect.TypeOf(events.GameEndEvent{}):
-		gameEnd := event.(*events.GameStartEvent)
+	case events.GameEndType:
 		return []Query{
-			UserGamesQuery(gameEnd.WhiteId),
-			UserGamesQuery(gameEnd.BlackId),
+			UserGamesQuery(event.WhiteId),
+			UserGamesQuery(event.BlackId),
 		}
-	case reflect.TypeOf(events.DrawOfferEvent{}):
+	case events.DrawOfferType:
 		return []Query{
-			DrawOfferStateQuery(event.GameId()),
+			DrawOfferStateQuery(event.GameId),
 		}
-	case reflect.TypeOf(events.DrawOfferResponseEvent{}):
+	case events.DrawOfferResponseType:
 		return []Query{
-			DrawOfferStateQuery(event.GameId()),
+			DrawOfferStateQuery(event.GameId),
 		}
 	default:
 		return []Query{}

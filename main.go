@@ -8,6 +8,7 @@ import (
 
 	"foodtastechess/config"
 	"foodtastechess/directory"
+	"foodtastechess/events"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
@@ -49,6 +50,7 @@ func (app *App) LoadServices() {
 		"systemQueries":   systemQueries,
 		"eventSubscriber": queries.NewQueryBuffer(),
 		"users":           user.NewUsers(),
+		"events":          events.NewEvents(),
 		"stopChan":        app.StopChan,
 	}
 

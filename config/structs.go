@@ -28,4 +28,5 @@ type DatabaseConfig struct {
 	Username string
 	Password string
 	Database string
+	Prefix   string
 }

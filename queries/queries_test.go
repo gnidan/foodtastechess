@@ -124,19 +124,19 @@ func (m *MockEventsService) EventsForGame(gameId game.Id) []events.Event {
 	return args.Get(0).([]events.Event)
 }
 
-func (m *MockEventsService) EventsOfTypeForGame(gameId game.Id, eventType string) []events.Event {
+func (m *MockEventsService) EventsOfTypeForGame(gameId game.Id, eventType events.EventType) []events.Event {
 	args := m.Called(gameId, eventType)
 	return args.Get(0).([]events.Event)
 }
 
-func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType string) []events.Event {
+func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType events.EventType) []events.Event {
 	args := m.Called(userId, eventType)
 	return args.Get(0).([]events.Event)
 }
 
-func (m *MockEventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) events.MoveEvent {
+func (m *MockEventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) events.Event {
 	args := m.Called(gameId, turnNumber)
-	return args.Get(0).(events.MoveEvent)
+	return args.Get(0).(events.Event)
 }
 
 // MockQueriesCache is a mock that is used as a fake Cache service

@@ -57,10 +57,10 @@ func (suite *MoveAtTurnQueryTestSuite) TestComputeResult() {
 		move       game.AlgebraicMove = "Na2"
 
 		query *moveAtTurnQuery
-		event events.MoveEvent
+		event events.Event
 	)
 
-	event = events.NewMoveEvent(gameId, turnNumber, move).(events.MoveEvent)
+	event = events.NewMoveEvent(gameId, turnNumber, move)
 	query = MoveAtTurnQuery(gameId, turnNumber).(*moveAtTurnQuery)
 
 	assert := assert.New(suite.T())

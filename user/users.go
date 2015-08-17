@@ -14,6 +14,8 @@ type Users interface {
 	Save(user *User) error
 }
 
+var tablePrefix string = ""
+
 type UsersService struct {
 	Config config.DatabaseConfig `inject:"databaseConfig"`
 
@@ -25,6 +27,10 @@ func NewUsers() Users {
 }
 
 func (s *UsersService) PostPopulate() error {
+	// hook for test-suite, make a global table prefix if our config
+	// defines it
+	tablePrefix = s.Config.Prefix
+
 	dsn := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True",
 		s.Config.Username, s.Config.Password,

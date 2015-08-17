@@ -40,8 +40,8 @@ func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
 		return
 	}
 
-	lastOffer := offers[len(offers)-1].(events.DrawOfferEvent)
-	if lastOffer.Color == game.White {
+	lastOffer := offers[len(offers)-1]
+	if lastOffer.Offerer == game.White {
 		q.result = whiteDrawOffer
 	} else {
 		q.result = blackDrawOffer
