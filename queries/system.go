@@ -32,13 +32,20 @@ func NewSystemQueryService() SystemQueries {
 
 func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 	found := s.Cache.Get(query)
-	if found {
-		return query.getResult()
+	if !found {
+		s.computeAnswer(query, true)
 	}
+	return query.getResult()
+}
 
+func (s *SystemQueryService) computeAnswer(query Query, skipSearch bool) {
+	log.Debug("Computing answer for query %v", query)
+
+	if !skipSearch && s.Cache.Get(query) {
+		s.Cache.Delete(query)
+	}
 	query.computeResult(s)
 	s.Cache.Store(query)
-	return query.getResult()
 }
 
 func (s *SystemQueryService) getDependentQueryLookup(query Query) QueryLookup {

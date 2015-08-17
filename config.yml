@@ -1,6 +1,6 @@
 logger:
     noise: loud
-    level: 6
+    level: 5
     location: stdout
     levels:
         config: 1

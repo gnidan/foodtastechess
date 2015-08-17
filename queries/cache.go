@@ -44,7 +44,7 @@ func (c *queriesCache) Get(partial Query) bool {
 		Sort("-computedat").
 		One(partial)
 	if err != nil {
-		log.Error(fmt.Sprintf("Got error retrieving: %v", err))
+		log.Debug(fmt.Sprintf("Got error retrieving: %v", err))
 		return false
 	}
 

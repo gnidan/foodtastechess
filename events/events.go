@@ -13,6 +13,10 @@ type Events interface {
 	MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) MoveEvent
 }
 
+type EventSubscriber interface {
+	Receive(event Event) error
+}
+
 type Event interface {
 	GameId() game.Id
 }

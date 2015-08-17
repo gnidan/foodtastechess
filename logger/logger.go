@@ -36,7 +36,7 @@ func InitLog(C LoggerConfig) {
 	}
 
 	var format = logging.MustStringFormatter(
-		"[ %{module:9s} ] %{color}%{time:15:04:05.0000} %{level:8s} ▶  %{color:reset}%{message}")
+		"[ %{module:12s} ] %{color}%{time:15:04:05.0000} %{level:8s} ▶  %{color:reset}%{message}")
 
 	logging.SetFormatter(format)
 }

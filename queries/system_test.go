@@ -172,6 +172,31 @@ func (suite *SystemQueriesTestSuite) TestQueryStorage() {
 	suite.mockQueriesCache.AssertCalled(suite.T(), "Store", query)
 }
 
+func (suite *SystemQueriesTestSuite) TestInvalidation() {
+	var (
+		gameId game.Id = 5
+		query  Query   = TurnNumberQuery(gameId)
+	)
+
+	suite.mockQueriesCache.
+		On("Get", query).
+		Return(true)
+
+	fakeMoves := []events.Event{
+		events.NewMoveEvent(gameId, 1, ""),
+		events.NewMoveEvent(gameId, 2, ""),
+		events.NewMoveEvent(gameId, 3, ""),
+	}
+	suite.mockEvents.On("EventsOfTypeForGame", gameId, events.MoveType).Return(fakeMoves).Once()
+
+	suite.mockQueriesCache.On("Delete", query).Return().Once()
+	suite.mockQueriesCache.On("Store", query).Return().Once()
+
+	suite.systemQueries.computeAnswer(query, false)
+	suite.mockQueriesCache.AssertCalled(suite.T(), "Store", query)
+	suite.mockQueriesCache.AssertCalled(suite.T(), "Delete", query)
+}
+
 func TestSystemQueries(t *testing.T) {
 	suite.Run(t, new(SystemQueriesTestSuite))
 }

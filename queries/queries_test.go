@@ -141,14 +141,17 @@ type MockQueriesCache struct {
 }
 
 func (m *MockQueriesCache) Get(partial Query) bool {
+	log.Debug("get %v", partial)
 	args := m.Called(partial)
 	return args.Bool(0)
 }
 
 func (m *MockQueriesCache) Store(query Query) {
+	log.Debug("store %v", query)
 	m.Called(query)
 }
 
 func (m *MockQueriesCache) Delete(partial Query) {
+	log.Debug("delete %v", partial)
 	m.Called(partial)
 }
