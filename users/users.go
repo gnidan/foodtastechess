@@ -1,4 +1,4 @@
-package user
+package users
 
 import (
 	"fmt"
@@ -50,14 +50,14 @@ func (s *UsersService) PostPopulate() error {
 func (s *UsersService) Get(uuid string) (User, bool) {
 	user := User{}
 	s.db.Where(&User{Uuid: uuid}).First(&user)
-	found := (user.ID != 0)
+	found := (user.Id != 0)
 	return user, found
 }
 
 func (s *UsersService) GetByAuthId(authId string) (User, bool) {
 	user := User{}
 	s.db.Where(&User{AuthIdentifier: authId}).First(&user)
-	found := (user.ID != 0)
+	found := (user.Id != 0)
 	return user, found
 }
 

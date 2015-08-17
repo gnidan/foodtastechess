@@ -8,10 +8,10 @@ import (
 )
 
 type userGamesQuery struct {
-	playerId string
+	PlayerId string
 
 	Answered bool
-	result   []game.Id
+	Result   []game.Id
 }
 
 func (q *userGamesQuery) hasResult() bool {
@@ -19,17 +19,17 @@ func (q *userGamesQuery) hasResult() bool {
 }
 
 func (q *userGamesQuery) getResult() interface{} {
-	return q.result
+	return q.Result
 }
 
 func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	activeGames := make(map[game.Id]events.Event)
 
 	gameStarts := queries.getEvents().
-		EventsOfTypeForPlayer(q.playerId, events.GameStartType)
+		EventsOfTypeForPlayer(q.PlayerId, events.GameStartType)
 
 	gameEnds := queries.getEvents().
-		EventsOfTypeForPlayer(q.playerId, events.GameEndType)
+		EventsOfTypeForPlayer(q.PlayerId, events.GameEndType)
 
 	for _, event := range gameStarts {
 		activeGames[event.GameId] = event
@@ -45,7 +45,7 @@ func (q *userGamesQuery) computeResult(queries SystemQueries) {
 		activeGameIds = append(activeGameIds, id)
 	}
 
-	q.result = activeGameIds
+	q.Result = activeGameIds
 	q.Answered = true
 }
 
@@ -54,5 +54,5 @@ func (q *userGamesQuery) getDependentQueries() []Query {
 }
 
 func (q *userGamesQuery) hash() string {
-	return fmt.Sprintf("usergames:%v", q.playerId)
+	return fmt.Sprintf("usergames:%v", q.PlayerId)
 }

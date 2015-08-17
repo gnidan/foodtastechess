@@ -8,7 +8,7 @@ import (
 )
 
 type drawOfferStateQuery struct {
-	gameId game.Id
+	GameId game.Id
 
 	Answered bool
 	result   drawOfferState
@@ -31,8 +31,8 @@ func (q *drawOfferStateQuery) getResult() interface{} {
 }
 
 func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
-	offers := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferType)
-	responses := queries.getEvents().EventsOfTypeForGame(q.gameId, events.DrawOfferResponseType)
+	offers := queries.getEvents().EventsOfTypeForGame(q.GameId, events.DrawOfferType)
+	responses := queries.getEvents().EventsOfTypeForGame(q.GameId, events.DrawOfferResponseType)
 
 	q.Answered = true
 	if len(responses) == len(offers) {
@@ -53,5 +53,5 @@ func (q *drawOfferStateQuery) getDependentQueries() []Query {
 }
 
 func (q *drawOfferStateQuery) hash() string {
-	return fmt.Sprintf("drawoffer:%v", q.gameId)
+	return fmt.Sprintf("drawoffer:%v", q.GameId)
 }

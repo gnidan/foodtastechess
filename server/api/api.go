@@ -7,7 +7,7 @@ import (
 
 	"foodtastechess/logger"
 	"foodtastechess/queries"
-	"foodtastechess/user"
+	"foodtastechess/users"
 )
 
 var log = logger.Log("chessApi")
@@ -58,6 +58,6 @@ func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	res.WriteJson(fmt.Sprintf("Hello, %s!", u.Name))
 }
 
-func getUser(req *rest.Request) user.User {
-	return req.Env["user"].(user.User)
+func getUser(req *rest.Request) users.User {
+	return req.Env["user"].(users.User)
 }

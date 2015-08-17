@@ -2,6 +2,7 @@ package queries
 
 import (
 	"foodtastechess/game"
+	"foodtastechess/users"
 )
 
 // ClientQueries is the interface by which other parts of the system
@@ -16,6 +17,7 @@ type ClientQueries interface {
 // It composes an injected SystemQueries interface that it uses to
 // aggregate information for the supported methods
 type ClientQueryService struct {
+	Users         users.Users   `inject:"users"`
 	SystemQueries SystemQueries `inject:"systemQueries"`
 }
 
@@ -30,18 +32,36 @@ type GameInformation struct {
 	Id         game.Id
 	TurnNumber game.TurnNumber
 	BoardState game.FEN
+	White      users.User
+	Black      users.User
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
 func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
-	turnNumberQ := TurnNumberQuery(id).(*turnNumberQuery)
+	gameInfo := new(GameInformation)
+
+	turnNumberQ := TurnNumberQuery(id)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
+	gameInfo.TurnNumber = turnNumber
 
-	boardStateQ := BoardAtTurnQuery(id, turnNumber).(*boardStateAtTurnQuery)
+	boardStateQ := BoardAtTurnQuery(id, turnNumber)
 	boardState := s.SystemQueries.AnswerQuery(boardStateQ).(game.FEN)
+	gameInfo.BoardState = boardState
 
-	return GameInformation{
-		TurnNumber: turnNumber,
-		BoardState: boardState,
+	gamePlayersQ := GamePlayersQuery(id)
+	gamePlayers := s.SystemQueries.AnswerQuery(gamePlayersQ).(map[game.Color]string)
+
+	log.Debug("got players: %v", gamePlayers)
+
+	white, found := s.Users.Get(gamePlayers[game.White])
+	if found {
+		gameInfo.White = white
 	}
+
+	black, found := s.Users.Get(gamePlayers[game.Black])
+	if found {
+		gameInfo.Black = black
+	}
+
+	return *gameInfo
 }

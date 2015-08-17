@@ -12,7 +12,7 @@ import (
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
-	"foodtastechess/user"
+	"foodtastechess/users"
 )
 
 var (
@@ -49,7 +49,7 @@ func (app *App) LoadServices() {
 		"clientQueries":   queries.NewClientQueryService(),
 		"systemQueries":   systemQueries,
 		"eventSubscriber": queries.NewQueryBuffer(),
-		"users":           user.NewUsers(),
+		"users":           users.NewUsers(),
 		"events":          events.NewEvents(),
 		"stopChan":        app.StopChan,
 	}

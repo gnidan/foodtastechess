@@ -9,6 +9,7 @@ import (
 	"foodtastechess/directory"
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 // ClientQueriesTestSuite is a collection of tests to ensure the correct
@@ -20,6 +21,7 @@ type ClientQueriesTestSuite struct {
 
 	log               *logging.Logger
 	mockSystemQueries *MockSystemQueries
+	mockUsers         *MockUsers
 	clientQueries     ClientQueries
 }
 
@@ -33,6 +35,7 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 
 		systemQueries MockSystemQueries
 		clientQueries ClientQueryService
+		mockUsers     MockUsers
 	)
 
 	systemQueries.complete = true
@@ -43,6 +46,7 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 	d = directory.New()
 	d.AddService("clientQueries", &clientQueries)
 	d.AddService("systemQueries", &systemQueries)
+	d.AddService("users", &mockUsers)
 
 	// Populate the directory so that clientQueries knows to use our mocked
 	// systemQueries
@@ -53,6 +57,7 @@ func (suite *ClientQueriesTestSuite) SetupTest() {
 	// Store references for use in tests
 	suite.mockSystemQueries = &systemQueries
 	suite.clientQueries = &clientQueries
+	suite.mockUsers = &mockUsers
 }
 
 // TestGameInformation tests the ClientQueries.GameInformation() method.
@@ -71,21 +76,40 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		// in this board state
 		expectedBoardState game.FEN = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
 
+		whiteId string = "bob"
+		blackId string = "frank"
+
+		gamePlayers map[game.Color]string = map[game.Color]string{
+			game.White: whiteId,
+			game.Black: blackId,
+		}
+
+		expectedWhite users.User = users.User{Uuid: whiteId}
+		expectedBlack users.User = users.User{Uuid: blackId}
+
 		// expected query objects we're looking for
-		turnNumberQuery Query = TurnNumberQuery(gameId)
-		boardStateQuery Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
+		turnNumberQuery  Query = TurnNumberQuery(gameId)
+		boardStateQuery  Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
+		gamePlayersQuery Query = GamePlayersQuery(gameId)
 	)
 
 	// given our expected queries, return our respective expected results
 	suite.mockSystemQueries.On("AnswerQuery", turnNumberQuery).Return(expectedTurnNumber)
 	suite.mockSystemQueries.On("AnswerQuery", boardStateQuery).Return(expectedBoardState)
+	suite.mockSystemQueries.On("AnswerQuery", gamePlayersQuery).Return(gamePlayers)
+
+	suite.mockUsers.On("Get", whiteId).Return(expectedWhite, true)
+	suite.mockUsers.On("Get", blackId).Return(expectedBlack, true)
 
 	// run the test call
 	gameInfo := suite.clientQueries.GameInformation(gameId)
 
+	assert := assert.New(suite.T())
 	// and expect that the game info we get back has the pretend values
-	assert.Equal(suite.T(), expectedTurnNumber, gameInfo.TurnNumber)
-	assert.Equal(suite.T(), expectedBoardState, gameInfo.BoardState)
+	assert.Equal(expectedTurnNumber, gameInfo.TurnNumber)
+	assert.Equal(expectedBoardState, gameInfo.BoardState)
+	assert.Equal(expectedWhite, gameInfo.White)
+	assert.Equal(expectedBlack, gameInfo.Black)
 }
 
 func TestClientQueriesTestSuite(t *testing.T) {

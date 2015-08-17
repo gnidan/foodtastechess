@@ -1,4 +1,4 @@
-package user
+package users
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 var log = logger.Log("user")
 
 type User struct {
-	ID                int
+	Id                int
 	Uuid              string `sql:"unique_index"`
 	Name              string
 	AvatarUrl         string

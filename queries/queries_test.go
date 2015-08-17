@@ -10,6 +10,7 @@ import (
 	"foodtastechess/events"
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 // Base-class test suite
@@ -51,6 +52,26 @@ func (suite *QueryTestSuite) SetupTest() {
 	suite.mockGameCalculator = &gameCalculator
 	suite.mockEvents = &events
 	suite.mockQueriesCache = &queriesCache
+}
+
+// MockUsers is a mock for users service
+type MockUsers struct {
+	mock.Mock
+}
+
+func (m *MockUsers) Get(uuid string) (users.User, bool) {
+	args := m.Called(uuid)
+	return args.Get(0).(users.User), args.Bool(1)
+}
+
+func (m *MockUsers) GetByAuthId(authId string) (users.User, bool) {
+	args := m.Called(authId)
+	return args.Get(0).(users.User), args.Bool(1)
+}
+
+func (m *MockUsers) Save(user *users.User) error {
+	args := m.Called(user)
+	return args.Error(0)
 }
 
 // MockSystemQueries is a mock that we're going to use as a

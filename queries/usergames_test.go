@@ -81,10 +81,10 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	query.computeResult(suite.mockSystemQueries)
 
 	for _, id := range activeGames {
-		assert.Contains(query.result, id)
+		assert.Contains(query.Result, id)
 	}
 
-	assert.Equal(len(activeGames), len(query.result))
+	assert.Equal(len(activeGames), len(query.Result))
 
 	assert.Equal(true, query.hasResult())
 }
