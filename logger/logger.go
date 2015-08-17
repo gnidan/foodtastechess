@@ -10,6 +10,7 @@ type LoggerConfig struct {
 	Noise    string
 	Level    int
 	Location string
+	Levels   map[string]int
 }
 
 func Log(module string) *logging.Logger {
@@ -29,8 +30,20 @@ func InitLog(C LoggerConfig) {
 	backend := logging.NewLogBackend(location, "", 0)
 	logging.SetBackend(backend)
 
+	setLevel("", C.Level)
+	for name, level := range C.Levels {
+		setLevel(name, level)
+	}
+
+	var format = logging.MustStringFormatter(
+		"[ %{module:9s} ] %{color}%{time:15:04:05.0000} %{level:8s} ▶  %{color:reset}%{message}")
+
+	logging.SetFormatter(format)
+}
+
+func setLevel(name string, val int) {
 	var level logging.Level
-	switch C.Level {
+	switch val {
 	case 1:
 		level = logging.CRITICAL
 	case 2:
@@ -44,10 +57,5 @@ func InitLog(C LoggerConfig) {
 	case 6:
 		level = logging.DEBUG
 	}
-	logging.SetLevel(level, "")
-
-	var format = logging.MustStringFormatter(
-		"[ %{module:9s} ] %{color}%{time:15:04:05.0000} %{level:8s} ▶  %{color:reset}%{message}")
-
-	logging.SetFormatter(format)
+	logging.SetLevel(level, name)
 }

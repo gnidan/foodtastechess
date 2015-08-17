@@ -2,6 +2,8 @@ logger:
     noise: loud
     level: 6
     location: stdout
+    levels:
+        config: 1
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"
