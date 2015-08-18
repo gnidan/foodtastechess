@@ -14,7 +14,11 @@ services:
    - id: mariadb
      tag: latest
      env:
-       MYSQL_ROOT_PASSWORD: 2QMwv7EmagEYGt
+       MYSQL_ROOT_PASSWORD: rntnuqCa8sEDF2
+       MYSQL_USER: ftc
+       MYSQL_PASSWORD: 3JsHYycqAa7qhA
+       MYSQL_DATABASE: foodtastechess
+
 
 build:
   # The steps that will be executed on build

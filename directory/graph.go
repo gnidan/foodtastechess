@@ -1,7 +1,9 @@
 package directory
 
 import (
+	"fmt"
 	"github.com/facebookgo/inject"
+	"sync"
 )
 
 type graph interface {
@@ -48,17 +50,24 @@ func (g *injectGraph) populate() error {
 		return err
 	}
 
-	for _, injectObject := range g.graph.Objects() {
-		value := injectObject.Value
+	var wg sync.WaitGroup
 
-		object, ok := value.(objectPostPopulate)
-		if ok {
-			err := object.PostPopulate()
-			if err != nil {
-				return err
+	for _, injectObject := range g.graph.Objects() {
+		wg.Add(1)
+
+		go func(name string, value interface{}) {
+			defer wg.Done()
+			object, ok := value.(objectPostPopulate)
+			if ok {
+				err := object.PostPopulate()
+				if err != nil {
+					log.Fatal(fmt.Sprintf("Could not perform post-population for %s", name))
+				}
 			}
-		}
+		}(injectObject.Name, injectObject.Value)
 	}
+
+	wg.Wait()
 
 	return nil
 }

@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
+	"os"
+	"os/signal"
 
 	"foodtastechess/directory"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
+	"foodtastechess/user"
 )
 
 var (
@@ -38,8 +41,8 @@ func readConf() {
 }
 
 type App struct {
-	directory  directory.Directory
-	HttpServer *server.Server `inject:"httpServer"`
+	directory directory.Directory
+	StopChan  chan bool `inject:"stopChan"`
 }
 
 func NewApp() *App {
@@ -51,10 +54,14 @@ func NewApp() *App {
 func (app *App) LoadServices() {
 	var err error
 
+	app.StopChan = make(chan bool, 1)
+
 	services := map[string](interface{}){
 		"httpServer":    server.New(),
 		"clientQueries": queries.NewClientQueryService(),
 		"systemQueries": queries.NewSystemQueryService(),
+		"users":         user.NewUsers(),
+		"stopChan":      app.StopChan,
 	}
 
 	for name, value := range services {
@@ -82,6 +89,15 @@ func (app *App) Start() {
 	}
 }
 
+func (app *App) Stop() {
+	err := app.directory.Stop("httpServer")
+	if err != nil {
+		msg := fmt.Sprintf("Could not stop HTTP Server: %v", err)
+		log.Error(msg)
+		return
+	}
+}
+
 func main() {
 	readConf()
 
@@ -95,6 +111,17 @@ func main() {
 	log.Notice("Starting foodtastechess")
 	app.Start()
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
 	for {
+		select {
+		case <-app.StopChan:
+			log.Notice("Quitting.")
+			return
+		case <-c:
+			fmt.Println("")
+			app.Stop()
+		}
 	}
 }
