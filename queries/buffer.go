@@ -35,10 +35,10 @@ func (b *QueryBuffer) Process() {
 			b.log.Info("Got query")
 			b.SystemQueries.computeAnswer(query, false)
 		case <-b.stopChan:
+			b.log.Info("QueryBuffer stopped")
 			return
 		}
 	}
-	b.log.Info("QueryBuffer stopped")
 }
 
 func (b *QueryBuffer) Stop() error {
