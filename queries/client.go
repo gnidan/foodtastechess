@@ -51,8 +51,6 @@ func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 	gamePlayersQ := GamePlayersQuery(id)
 	gamePlayers := s.SystemQueries.AnswerQuery(gamePlayersQ).(map[game.Color]string)
 
-	log.Debug("got players: %v", gamePlayers)
-
 	white, found := s.Users.Get(gamePlayers[game.White])
 	if found {
 		gameInfo.White = white
@@ -64,4 +62,13 @@ func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 	}
 
 	return *gameInfo
+}
+
+type MoveRecord struct {
+	Move                game.AlgebraicMove
+	ResultingBoardState game.FEN
+}
+
+func (s *ClientQueryService) GameHistory(id game.Id) []MoveRecord {
+	return []MoveRecord{}
 }

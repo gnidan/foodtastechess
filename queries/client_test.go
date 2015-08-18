@@ -94,12 +94,22 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	)
 
 	// given our expected queries, return our respective expected results
-	suite.mockSystemQueries.On("AnswerQuery", turnNumberQuery).Return(expectedTurnNumber)
-	suite.mockSystemQueries.On("AnswerQuery", boardStateQuery).Return(expectedBoardState)
-	suite.mockSystemQueries.On("AnswerQuery", gamePlayersQuery).Return(gamePlayers)
+	suite.mockSystemQueries.
+		On("AnswerQuery", turnNumberQuery).
+		Return(expectedTurnNumber)
+	suite.mockSystemQueries.
+		On("AnswerQuery", boardStateQuery).
+		Return(expectedBoardState)
+	suite.mockSystemQueries.
+		On("AnswerQuery", gamePlayersQuery).
+		Return(gamePlayers)
 
-	suite.mockUsers.On("Get", whiteId).Return(expectedWhite, true)
-	suite.mockUsers.On("Get", blackId).Return(expectedBlack, true)
+	suite.mockUsers.
+		On("Get", whiteId).
+		Return(expectedWhite, true)
+	suite.mockUsers.
+		On("Get", blackId).
+		Return(expectedBlack, true)
 
 	// run the test call
 	gameInfo := suite.clientQueries.GameInformation(gameId)
@@ -110,6 +120,9 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	assert.Equal(expectedBoardState, gameInfo.BoardState)
 	assert.Equal(expectedWhite, gameInfo.White)
 	assert.Equal(expectedBlack, gameInfo.Black)
+}
+
+func (suite *ClientQueriesTestSuite) TestGameHistory() {
 }
 
 func TestClientQueriesTestSuite(t *testing.T) {
