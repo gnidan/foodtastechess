@@ -1,5 +1,10 @@
 package game
 
+import (
+	"reflect"
+	"strconv"
+)
+
 type GameState struct {
 	pieceMap map[Position]Piece
 }
@@ -29,6 +34,73 @@ func (s *GameState) PieceAtPosition(pos Position) Piece {
 	}
 	//piece not found
 	return nil
+}
+
+func (s GameState) ConvertToFEN() string {
+	stringFEN := ""
+	
+	for rank := 8; rank > 0; rank-- {
+		emptyCount := 0
+		for file := 1; file <= 8; file++ {
+
+			piece := s.PieceAtPosition(Position{file, rank})
+
+			//fmt.Println(reflect.TypeOf(piece))
+			if piece == nil {
+				emptyCount++
+				continue
+			} else if emptyCount > 0 {
+				stringFEN += strconv.Itoa(emptyCount)
+				emptyCount = 0
+			}
+			pieceName := reflect.TypeOf(piece).Name()
+			if pieceName == "Pawn" {
+				if piece.Color() == White {
+					stringFEN += "P"
+				} else {
+					stringFEN += "p"
+				}
+			} else if pieceName == "Knight" {
+				if piece.Color() == White {
+					stringFEN += "N"
+				} else {
+					stringFEN += "n"
+				}
+			} else if pieceName == "Bishop" {
+				if piece.Color() == White {
+					stringFEN += "B"
+				} else {
+					stringFEN += "b"
+				}
+			} else if pieceName == "Rook" {
+				if piece.Color() == White {
+					stringFEN += "R"
+				} else {
+					stringFEN += "r"
+				}
+			} else if pieceName == "Queen" {
+				if piece.Color() == White {
+					stringFEN += "Q"
+				} else {
+					stringFEN += "q"
+				}
+			} else if pieceName == "King" {
+				if piece.Color() == White {
+					stringFEN += "K"
+				} else {
+					stringFEN += "k"
+				}
+			}
+		}
+		if emptyCount > 0 {
+			stringFEN += strconv.Itoa(emptyCount)
+		}
+		if rank > 1 {
+			stringFEN += "/"
+		}
+	}
+
+	return stringFEN
 }
 
 func InitializeBoard() GameState {
