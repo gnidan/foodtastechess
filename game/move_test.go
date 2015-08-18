@@ -25,13 +25,14 @@ func (s *MoveTestSuite) TestMoveConstructor() {
 		NewPosition(5, 1): NewKing(White),
 	}
 	state := NewGameState(pieceMap)
-
-	//state := InitializeBoard()
-
 	validMoves := state.ValidMoves(NewPosition(5, 1))
 
 	assert := assert.New(s.T())
 	//assert.Equal(expected, actual)
 	//assert.Equal(0,1) //force fail
 	assert.Equal(1, validMoves)
+
+	newState := InitializeBoard()
+	assert.Equal("test", newState.ConvertToFEN())
+
 }
