@@ -5,6 +5,7 @@ import (
 
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 var log = logger.Log("queries")
@@ -54,7 +55,7 @@ func MoveAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	}
 }
 
-func UserGamesQuery(playerId string) Query {
+func UserGamesQuery(playerId users.Id) Query {
 	return &userGamesQuery{
 		PlayerId: playerId,
 	}

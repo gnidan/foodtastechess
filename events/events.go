@@ -9,6 +9,7 @@ import (
 	"foodtastechess/config"
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 var tablePrefix string = ""
@@ -18,7 +19,7 @@ type Events interface {
 
 	EventsForGame(gameId game.Id) []Event
 	EventsOfTypeForGame(gameId game.Id, eventType EventType) []Event
-	EventsOfTypeForPlayer(userId string, eventType EventType) []Event
+	EventsOfTypeForPlayer(userId users.Id, eventType EventType) []Event
 	MoveEventForGameAtTurn(gameId game.Id, turnNumber game.TurnNumber) Event
 }
 
@@ -85,7 +86,7 @@ func (s *EventsService) EventsOfTypeForGame(gameId game.Id, eventType EventType)
 	return events
 }
 
-func (s *EventsService) EventsOfTypeForPlayer(userId string, eventType EventType) []Event {
+func (s *EventsService) EventsOfTypeForPlayer(userId users.Id, eventType EventType) []Event {
 	var events []Event
 	s.db.
 		Where(&Event{Type: eventType, WhiteId: userId}).

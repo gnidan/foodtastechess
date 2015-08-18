@@ -76,10 +76,10 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		// in this board state
 		expectedBoardState game.FEN = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
 
-		whiteId string = "bob"
-		blackId string = "frank"
+		whiteId users.Id = "bob"
+		blackId users.Id = "frank"
 
-		gamePlayers map[game.Color]string = map[game.Color]string{
+		gamePlayers map[game.Color]users.Id = map[game.Color]users.Id{
 			game.White: whiteId,
 			game.Black: blackId,
 		}
@@ -123,6 +123,61 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 }
 
 func (suite *ClientQueriesTestSuite) TestGameHistory() {
+	assert := assert.New(suite.T())
+	var (
+		gameId game.Id = 11
+
+		moves []game.AlgebraicMove = []game.AlgebraicMove{
+			"move1",
+			"move2",
+			"move3",
+		}
+
+		states []game.FEN = []game.FEN{
+			"start",
+			"turn1",
+			"turn2",
+			"turn3",
+		}
+	)
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", TurnNumberQuery(gameId)).
+		Return(game.TurnNumber(len(moves)))
+
+	for i, move := range moves {
+		query := MoveAtTurnQuery(gameId, game.TurnNumber(i+1))
+
+		suite.mockSystemQueries.
+			On("AnswerQuery", query).
+			Return(move)
+	}
+
+	for i, state := range states {
+		query := BoardAtTurnQuery(gameId, game.TurnNumber(i))
+
+		suite.mockSystemQueries.
+			On("AnswerQuery", query).
+			Return(state)
+	}
+
+	history := suite.clientQueries.GameHistory(gameId)
+
+	assert.Equal(len(states), len(history))
+
+	for i, record := range history {
+		var expectedMove game.AlgebraicMove
+		if i == 0 {
+			expectedMove = ""
+		} else {
+			expectedMove = moves[i-1]
+		}
+
+		expectedState := states[i]
+
+		assert.Equal(expectedMove, record.Move)
+		assert.Equal(expectedState, record.ResultingBoardState)
+	}
 }
 
 func TestClientQueriesTestSuite(t *testing.T) {

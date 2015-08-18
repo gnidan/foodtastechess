@@ -5,10 +5,11 @@ import (
 
 	"foodtastechess/events"
 	"foodtastechess/game"
+	"foodtastechess/users"
 )
 
 type userGamesQuery struct {
-	PlayerId string
+	PlayerId users.Id
 
 	Answered bool
 	Result   []game.Id

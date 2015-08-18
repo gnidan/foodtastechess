@@ -1,6 +1,7 @@
 package users
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"github.com/satori/go.uuid"
 	"time"
@@ -10,9 +11,20 @@ import (
 
 var log = logger.Log("user")
 
+type Id string
+
+func (u *Id) Scan(value interface{}) error {
+	*u = Id(value.([]byte))
+	return nil
+}
+
+func (u Id) Value() (driver.Value, error) {
+	return string(u), nil
+}
+
 type User struct {
 	Id                int
-	Uuid              string `sql:"unique_index"`
+	Uuid              Id `sql:"unique_index"`
 	Name              string
 	AvatarUrl         string
 	AuthIdentifier    string `sql:"unique_index"`
@@ -28,6 +40,6 @@ func (u User) TableName() string {
 	return fmt.Sprintf("%susers", tablePrefix)
 }
 
-func NewId() string {
-	return uuid.NewV4().String()
+func NewId() Id {
+	return Id(uuid.NewV4().String())
 }
