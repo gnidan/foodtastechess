@@ -17,6 +17,9 @@ type objectPreProvide interface {
 type objectPostPopulate interface {
 	PostPopulate() error
 }
+type objectOverride interface {
+	IsComplete() bool
+}
 
 type injectGraph struct {
 	graph inject.Graph
@@ -27,17 +30,26 @@ func newGraph() graph {
 }
 
 func (g *injectGraph) add(name string, value interface{}) error {
-	object, ok := value.(objectPreProvide)
+	var complete bool
 
+	objectPre, ok := value.(objectPreProvide)
 	if ok {
-		if err := object.PreProvide(g.add); err != nil {
+		if err := objectPre.PreProvide(g.add); err != nil {
 			return err
 		}
 	}
 
+	objectOvr, ok := value.(objectOverride)
+	if ok {
+		complete = objectOvr.IsComplete()
+	} else {
+		complete = false
+	}
+
 	if err := g.graph.Provide(&inject.Object{
-		Name:  name,
-		Value: value,
+		Name:     name,
+		Value:    value,
+		Complete: complete,
 	}); err != nil {
 		return err
 	}

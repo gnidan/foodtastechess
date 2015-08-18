@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/op/go-logging"
-	"github.com/spf13/viper"
 	"os"
 	"os/signal"
 
+	"foodtastechess/config"
 	"foodtastechess/directory"
+	"foodtastechess/events"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
-	"foodtastechess/user"
+	"foodtastechess/users"
 )
 
 var (
@@ -19,35 +20,18 @@ var (
 	log *logging.Logger
 )
 
-func loggingConf() {
-	var C logger.LoggerConfig
-	err := viper.MarshalKey("logger", &C)
-	if err != nil {
-		panic(fmt.Errorf("Can't parse: %s \n", err))
-	}
-	logger.InitLog(C)
-}
-
-func readConf() {
-	viper.SetConfigName("config")
-	//	viper.AddConfigPath("/etc/appname/") you can use multiple search paths
-	viper.AddConfigPath("./")
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-
-	loggingConf()
-}
-
 type App struct {
+	config    config.ConfigProvider
 	directory directory.Directory
 	StopChan  chan bool `inject:"stopChan"`
 }
 
 func NewApp() *App {
+	wd, _ := os.Getwd()
+
 	app := new(App)
 	app.directory = directory.New()
+	app.config = config.NewConfigProvider("config", wd)
 	return app
 }
 
@@ -56,12 +40,18 @@ func (app *App) LoadServices() {
 
 	app.StopChan = make(chan bool, 1)
 
+	systemQueries := queries.NewSystemQueryService().(*queries.SystemQueryService)
+	systemQueries.Complete = true
+
 	services := map[string](interface{}){
-		"httpServer":    server.New(),
-		"clientQueries": queries.NewClientQueryService(),
-		"systemQueries": queries.NewSystemQueryService(),
-		"users":         user.NewUsers(),
-		"stopChan":      app.StopChan,
+		"configProvider":  app.config,
+		"httpServer":      server.New(),
+		"clientQueries":   queries.NewClientQueryService(),
+		"systemQueries":   systemQueries,
+		"eventSubscriber": queries.NewQueryBuffer(),
+		"users":           users.NewUsers(),
+		"events":          events.NewEvents(),
+		"stopChan":        app.StopChan,
 	}
 
 	for name, value := range services {
@@ -87,6 +77,13 @@ func (app *App) Start() {
 		log.Error(msg)
 		return
 	}
+
+	err = app.directory.Start("eventSubscriber")
+	if err != nil {
+		msg := fmt.Sprintf("Could not start event subscriber: %v", err)
+		log.Error(msg)
+		return
+	}
 }
 
 func (app *App) Stop() {
@@ -96,11 +93,16 @@ func (app *App) Stop() {
 		log.Error(msg)
 		return
 	}
+
+	err = app.directory.Stop("eventSubscriber")
+	if err != nil {
+		msg := fmt.Sprintf("Could not stop event subscriber: %v", err)
+		log.Error(msg)
+		return
+	}
 }
 
 func main() {
-	readConf()
-
 	log = logger.Log("main")
 
 	app = NewApp()

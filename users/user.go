@@ -1,6 +1,7 @@
-package user
+package users
 
 import (
+	"fmt"
 	"github.com/satori/go.uuid"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 var log = logger.Log("user")
 
 type User struct {
-	ID                int
+	Id                int
 	Uuid              string `sql:"unique_index"`
 	Name              string
 	AvatarUrl         string
@@ -21,6 +22,10 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+}
+
+func (u User) TableName() string {
+	return fmt.Sprintf("%susers", tablePrefix)
 }
 
 func NewId() string {

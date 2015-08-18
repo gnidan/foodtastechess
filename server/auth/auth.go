@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"foodtastechess/directory"
+	"foodtastechess/config"
 	"foodtastechess/logger"
 	sess "foodtastechess/server/session"
-	"foodtastechess/user"
+	"foodtastechess/users"
 )
 
 var log = logger.Log("auth")
@@ -22,27 +22,15 @@ type Authentication interface {
 }
 
 type authService struct {
-	Config        AuthConfig         `inject:"authConfig"`
-	SessionConfig sess.SessionConfig `inject:"sessionConfig"`
-	Users         user.Users         `inject:"users"`
+	Config        config.AuthConfig    `inject:"authConfig"`
+	SessionConfig config.SessionConfig `inject:"sessionConfig"`
+	Users         users.Users          `inject:"users"`
 
 	provider goth.Provider
 }
 
 func New() Authentication {
 	return new(authService)
-}
-
-// PreProvide is just for creating a fake auth config at this point
-func (s *authService) PreProvide(provider directory.Provider) error {
-	err := provider("authConfig", AuthConfig{
-		GoogleKey:    "419303763151-c57q5rf3omkr7n3f45a5tfavisovo8jr.apps.googleusercontent.com",
-		GoogleSecret: "gDkhFl3VXnVbMBGk7B_MeI2z",
-		CallbackUrl:  "http://local.drama9.com:8181/auth/callback",
-		SessionKey:   "auth",
-	})
-
-	return err
 }
 
 // PostPopulate sets up the oauth provider
@@ -111,26 +99,26 @@ func (s *authService) LoginRequired(res http.ResponseWriter, req *http.Request, 
 	}
 }
 
-func (s *authService) validCredentials(session sess.Session) (user.User, bool) {
+func (s *authService) validCredentials(session sess.Session) (users.User, bool) {
 	authSession, err := s.loadAuthSession(session)
 	if err != nil {
 		log.Info(fmt.Sprintf("Valid Auth Session not found: %v", err))
-		return user.User{}, false
+		return users.User{}, false
 	}
 
 	return s.getUser(authSession)
 }
 
-func (s *authService) getUser(authSession goth.Session) (user.User, bool) {
+func (s *authService) getUser(authSession goth.Session) (users.User, bool) {
 	guser, err := s.provider.FetchUser(authSession)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error fetching user: %v", err))
-		return user.User{}, false
+		return users.User{}, false
 	}
 
 	if guser.RawData["error"] != nil {
 		log.Info("User Session Expired")
-		return user.User{}, false
+		return users.User{}, false
 	}
 
 	u, found := s.Users.GetByAuthId(guser.UserID)
@@ -140,11 +128,11 @@ func (s *authService) getUser(authSession goth.Session) (user.User, bool) {
 		u.AccessToken = guser.AccessToken
 		u.AccessTokenSecret = guser.AccessTokenSecret
 	} else {
-		u = user.User{
+		u = users.User{
 			Name:              guser.NickName,
 			AvatarUrl:         guser.AvatarURL,
 			AuthIdentifier:    guser.UserID,
-			Uuid:              user.NewId(),
+			Uuid:              users.NewId(),
 			AccessToken:       guser.AccessToken,
 			AccessTokenSecret: guser.AccessTokenSecret,
 		}

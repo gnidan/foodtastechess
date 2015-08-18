@@ -1,4 +1,4 @@
-package user
+package users
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"foodtastechess/config"
-	"foodtastechess/directory"
 )
 
 type Users interface {
@@ -14,6 +13,8 @@ type Users interface {
 	GetByAuthId(authId string) (User, bool)
 	Save(user *User) error
 }
+
+var tablePrefix string = ""
 
 type UsersService struct {
 	Config config.DatabaseConfig `inject:"databaseConfig"`
@@ -25,15 +26,11 @@ func NewUsers() Users {
 	return new(UsersService)
 }
 
-func (s *UsersService) PreProvide(provide directory.Provider) error {
-	err := provide("databaseConfig",
-		config.NewMariaDockerComposeConfig(),
-	)
-
-	return err
-}
-
 func (s *UsersService) PostPopulate() error {
+	// hook for test-suite, make a global table prefix if our config
+	// defines it
+	tablePrefix = s.Config.Prefix
+
 	dsn := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True",
 		s.Config.Username, s.Config.Password,
@@ -53,14 +50,14 @@ func (s *UsersService) PostPopulate() error {
 func (s *UsersService) Get(uuid string) (User, bool) {
 	user := User{}
 	s.db.Where(&User{Uuid: uuid}).First(&user)
-	found := (user.ID != 0)
+	found := (user.Id != 0)
 	return user, found
 }
 
 func (s *UsersService) GetByAuthId(authId string) (User, bool) {
 	user := User{}
 	s.db.Where(&User{AuthIdentifier: authId}).First(&user)
-	found := (user.ID != 0)
+	found := (user.Id != 0)
 	return user, found
 }
 
