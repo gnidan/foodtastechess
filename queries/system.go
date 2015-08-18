@@ -1,17 +1,86 @@
 package queries
 
+import (
+	"foodtastechess/events"
+	"foodtastechess/game"
+)
+
 type SystemQueries interface {
-	GetAnswer(query Query) Answer
+	AnswerQuery(query Query) interface{}
+	computeAnswer(query Query, skipSearch bool)
+	getDependentQueryLookup(query Query) QueryLookup
+	getGameCalculator() game.GameCalculator
+	getEvents() events.Events
 }
 
 type SystemQueryService struct {
+	GameCalculator game.GameCalculator `inject:"gameCalculator"`
+	Events         events.Events       `inject:"eventsService"`
+	Cache          Cache               `inject:"queriesCache"`
+
+	Complete bool
 }
 
-func NewSystemQueryService() *SystemQueryService {
+// just until things get implemented
+func (s *SystemQueryService) IsComplete() bool {
+	return s.Complete
+}
+
+func NewSystemQueryService() SystemQueries {
 	sqs := new(SystemQueryService)
 	return sqs
 }
 
-func (s *SystemQueryService) GetAnswer(query Query) Answer {
-	return nil
+func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
+	found := s.Cache.Get(query)
+	if !found {
+		s.computeAnswer(query, true)
+	}
+	return query.getResult()
+}
+
+func (s *SystemQueryService) computeAnswer(query Query, skipSearch bool) {
+	log.Debug("Computing answer for query %v", query)
+
+	if !skipSearch && s.Cache.Get(query) {
+		s.Cache.Delete(query)
+	}
+	query.computeResult(s)
+	s.Cache.Store(query)
+}
+
+func (s *SystemQueryService) getDependentQueryLookup(query Query) QueryLookup {
+	dependentQueries := query.getDependentQueries()
+	for _, dependentQuery := range dependentQueries {
+		s.AnswerQuery(dependentQuery)
+	}
+
+	return NewQueryLookup(dependentQueries...)
+}
+
+func (s *SystemQueryService) getGameCalculator() game.GameCalculator {
+	return s.GameCalculator
+}
+
+func (s *SystemQueryService) getEvents() events.Events {
+	return s.Events
+}
+
+type QueryLookup struct {
+	table map[string]Query
+}
+
+func NewQueryLookup(queries ...Query) QueryLookup {
+	lookup := QueryLookup{}
+	lookup.table = make(map[string]Query)
+
+	for _, query := range queries {
+		lookup.table[query.hash()] = query
+	}
+
+	return lookup
+}
+
+func (l QueryLookup) Lookup(query Query) Query {
+	return l.table[query.hash()]
 }

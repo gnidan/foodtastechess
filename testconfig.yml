@@ -1,6 +1,6 @@
 logger:
     noise: loud
-    level: 5
+    level: 6
     location: stdout
     levels:
         config: 1
@@ -8,7 +8,7 @@ logger:
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"
     port: "$MONGO_PORT_27017_TCP_PORT"
-    database: dev
+    database: test
 
 auth:
     googlekey: "419303763151-c57q5rf3omkr7n3f45a5tfavisovo8jr.apps.googleusercontent.com"
@@ -29,3 +29,4 @@ database:
     username: "$MARIADB_ENV_MYSQL_USER"
     password: "$MARIADB_ENV_MYSQL_PASSWORD"
     database: "$MARIADB_ENV_MYSQL_DATABASE"
+    prefix: "test_"
