@@ -104,7 +104,7 @@ func (m *UnboundMove) Translate(pos Position, s *GameState) []Position {
 
 	nextPos := pos
 
-	for 1 == 1 {
+	for {
 		nextPos.file = nextPos.file + m.fileOffset
 		nextPos.rank = nextPos.rank + m.rankOffset
 
