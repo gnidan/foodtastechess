@@ -40,7 +40,7 @@ type CastlingMove struct {
 
 
 //Takes FEN and Algebraic, executes move and returns string
-func ExecuteMove(string FEN string, stringAlgabraic string) string {
+func ExecuteMove(stringFEN string, stringAlgabraic string) string {
 	
 }
 
