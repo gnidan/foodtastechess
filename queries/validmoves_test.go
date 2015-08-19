@@ -54,6 +54,42 @@ func (suite *ValidMovesQueryTestSuite) TestDependentQueries() {
 	}
 }
 
+func (suite *ValidMovesQueryTestSuite) TestComputeResult() {
+	var (
+		gameId     game.Id         = 1
+		turnNumber game.TurnNumber = 5
+
+		expectedState game.FEN = "gonnawin!"
+
+		expectedValidMoves = []game.AlgebraicMove{
+			"goodmove",
+			"badmove",
+			"bestmove",
+		}
+
+		boardStateQ Query = &boardStateAtTurnQuery{
+			GameId:     gameId,
+			TurnNumber: 1,
+			Result:     expectedState,
+		}
+
+		validMovesQ *validMovesAtTurnQuery = ValidMovesAtTurnQuery(gameId, turnNumber).(*validMovesAtTurnQuery)
+	)
+
+	assert := assert.New(suite.T())
+
+	suite.mockSystemQueries.
+		On("getDependentQueryLookup", validMovesQ).
+		Return(NewQueryLookup(boardStateQ))
+
+	suite.mockGameCalculator.
+		On("ValidMoves", expectedState).
+		Return(expectedValidMoves)
+
+	validMovesQ.computeResult(suite.mockSystemQueries)
+	assert.Equal(expectedValidMoves, validMovesQ.Result)
+}
+
 // Entrypoint
 func TestValidMovesQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(ValidMovesQueryTestSuite))
