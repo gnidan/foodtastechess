@@ -102,3 +102,18 @@ func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
 
 	return history
 }
+
+type ValidMove struct {
+	Move                game.AlgebraicMove
+	Source              game.Position
+	Destination         game.Position
+	ResultingBoardState game.FEN
+}
+
+func (s *ClientQueryService) ValidMoves(gameId game.Id) []ValidMove {
+	var (
+		validMoves []ValidMove = []ValidMove{}
+	)
+
+	return validMoves
+}

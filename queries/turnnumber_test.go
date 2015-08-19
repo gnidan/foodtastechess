@@ -56,16 +56,29 @@ func (suite *TurnNumberQueryTestSuite) TestComputeResult() {
 
 	assert := assert.New(suite.T())
 
-	suite.mockEvents.On("EventsOfTypeForGame", gameId, events.MoveType).Return([]events.Event{}).Once()
+	// case 1
+
+	suite.mockEvents.
+		On("EventsOfTypeForGame", gameId, events.MoveType).
+		Return([]events.Event{}).
+		Once()
+
 	query.computeResult(suite.mockSystemQueries)
+
 	assert.Equal(game.TurnNumber(0), query.Result)
+
+	// case 2
 
 	fakeMoves := []events.Event{
 		events.NewMoveEvent(gameId, 1, ""),
 		events.NewMoveEvent(gameId, 2, ""),
 		events.NewMoveEvent(gameId, 3, ""),
 	}
-	suite.mockEvents.On("EventsOfTypeForGame", gameId, events.MoveType).Return(fakeMoves).Once()
+	suite.mockEvents.
+		On("EventsOfTypeForGame", gameId, events.MoveType).
+		Return(fakeMoves).
+		Once()
+
 	query.computeResult(suite.mockSystemQueries)
 	assert.Equal(game.TurnNumber(3), query.Result)
 }

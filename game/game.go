@@ -48,7 +48,10 @@ func (u AlgebraicMove) Value() (driver.Value, error) {
 	return string(u), nil
 }
 
-type ValidMoves interface {
+type ValidMove interface {
+	Move() AlgebraicMove
+	PieceMove() (Position, Position)
+	ResultingBoardState() FEN
 }
 
 type Position interface {

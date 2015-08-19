@@ -60,7 +60,9 @@ func (suite *EventsTestSuite) TestReceive() {
 
 	event := NewMoveEvent(gameId, turnNumber, move)
 
-	suite.mockSubscriber.On("Receive", event).Return(nil)
+	suite.mockSubscriber.
+		On("Receive", event).
+		Return(nil)
 
 	suite.events.Receive(event)
 

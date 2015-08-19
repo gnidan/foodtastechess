@@ -28,12 +28,6 @@ type queryRecord struct {
 	ComputedAt time.Time
 }
 
-type validMovesAtTurnQuery struct {
-	GameId game.Id
-
-	Result game.ValidMoves
-}
-
 func TurnNumberQuery(id game.Id) Query {
 	return &turnNumberQuery{
 		GameId: id,
@@ -70,5 +64,12 @@ func DrawOfferStateQuery(gameId game.Id) Query {
 func GamePlayersQuery(id game.Id) Query {
 	return &gamePlayersQuery{
 		GameId: id,
+	}
+}
+
+func ValidMovesAtTurnQuery(gameId game.Id, turnNumber game.TurnNumber) Query {
+	return &validMovesAtTurnQuery{
+		GameId:     gameId,
+		TurnNumber: turnNumber,
 	}
 }

@@ -59,3 +59,13 @@ func (q *gamePlayersQuery) isExpired(now interface{}) bool {
 func (q *gamePlayersQuery) getExpiration(now interface{}) interface{} {
 	return nil
 }
+
+// Valid Moves At Turn Query
+
+func (q *validMovesAtTurnQuery) isExpired(now interface{}) bool {
+	return false
+}
+
+func (q *validMovesAtTurnQuery) getExpiration(now interface{}) interface{} {
+	return nil
+}
