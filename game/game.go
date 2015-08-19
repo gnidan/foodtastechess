@@ -51,9 +51,6 @@ func (u AlgebraicMove) Value() (driver.Value, error) {
 type ValidMoves interface {
 }
 
-type Position interface {
-}
-
 type Color int
 
 const (
