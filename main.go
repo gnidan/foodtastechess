@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/facebookgo/inject"
 	"github.com/op/go-logging"
-	"github.com/spf13/viper"
 	"os"
+	"os/signal"
 
+	"foodtastechess/config"
+	"foodtastechess/directory"
+	"foodtastechess/events"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
+	"foodtastechess/users"
 )
 
 var (
@@ -17,101 +20,110 @@ var (
 	log *logging.Logger
 )
 
-func loggingConf() {
-	var C logger.LoggerConfig
-	err := viper.MarshalKey("logger", &C)
-	if err != nil {
-		panic(fmt.Errorf("Can't parse: %s \n", err))
-	}
-	logger.InitLog(C)
-}
-
-func readConf() {
-	viper.SetConfigName("config")
-	//	viper.AddConfigPath("/etc/appname/") you can use multiple search paths
-	viper.AddConfigPath("./")
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-
-	loggingConf()
-}
-
 type App struct {
-	graph      inject.Graph
-	HttpServer *server.Server `inject:"httpServer"`
+	config    config.ConfigProvider
+	directory directory.Directory
+	StopChan  chan bool `inject:"stopChan"`
 }
 
-func (app *App) initServices() {
-	app.addDependency("app", app)
-	app.addDependency("httpServer", server.New())
-	app.addDependency("clientQueries", queries.NewClientQueryService())
-	app.addDependency("systemQueries", queries.NewSystemQueryService())
+func NewApp() *App {
+	wd, _ := os.Getwd()
 
-	if err := app.graph.Populate(); err != nil {
-		log.Error(fmt.Sprintf("Could not populate graph (%v)", err))
+	app := new(App)
+	app.directory = directory.New()
+	app.config = config.NewConfigProvider("config", wd)
+	return app
+}
+
+func (app *App) LoadServices() {
+	var err error
+
+	app.StopChan = make(chan bool, 1)
+
+	systemQueries := queries.NewSystemQueryService().(*queries.SystemQueryService)
+	systemQueries.Complete = true
+
+	services := map[string](interface{}){
+		"configProvider":  app.config,
+		"httpServer":      server.New(),
+		"clientQueries":   queries.NewClientQueryService(),
+		"systemQueries":   systemQueries,
+		"eventSubscriber": queries.NewQueryBuffer(),
+		"users":           users.NewUsers(),
+		"events":          events.NewEvents(),
+		"stopChan":        app.StopChan,
+	}
+
+	for name, value := range services {
+		err = app.directory.AddService(name, value)
+		if err != nil {
+			msg := fmt.Sprintf("Adding %s service failed: %v", name, err)
+			log.Error(msg)
+		}
+	}
+
+	err = app.directory.Start()
+	if err != nil {
+		msg := fmt.Sprintf("Could not start directory: %v", err)
+		log.Error(msg)
+		return
 	}
 }
 
-// addDependency is a private interface by which the application
-// can add services to its graph for injection.
-//
-// Each dependency requires a name and of course the service
-// itself.
-//
-// Dependency Injection Overview:
-//
-//   There are several components of our application.
-//
-//   Almost every component depends on some other component within
-//   the application.
-//
-//	 Development of different components cannot rely on
-//	 components being finished in order of dependency. i.e., each
-//	 component needs to be testably correct on its own.
-//
-//	 Dependency Injection provides a way for each component to
-//	 specify its dependencies without being concerned what they
-//	 are or where they came from.
-//
-//	 The application maintains a graph of connected components
-//	 and populates each component's dependencies at run-time,
-//	 once they are all accounted for.
-//
-//	 This facilitates testing through the use of mocked services
-//	 that conform to the dependent interfaces, but return values
-//   applicable to each test.
-//
-func (app *App) addDependency(name string, value interface{}) {
-	object := inject.Object{
-		Name:  name,
-		Value: value,
+func (app *App) Start() {
+	err := app.directory.Start("httpServer")
+	if err != nil {
+		msg := fmt.Sprintf("Could not start HTTP Server: %v", err)
+		log.Error(msg)
+		return
 	}
 
-	if err := app.graph.Provide(&object); err != nil {
-		log.Fatalf(
-			"Could not provide value for name %s, got err: %v",
-			name,
-			err,
-		)
+	err = app.directory.Start("eventSubscriber")
+	if err != nil {
+		msg := fmt.Sprintf("Could not start event subscriber: %v", err)
+		log.Error(msg)
+		return
+	}
+}
+
+func (app *App) Stop() {
+	err := app.directory.Stop("httpServer")
+	if err != nil {
+		msg := fmt.Sprintf("Could not stop HTTP Server: %v", err)
+		log.Error(msg)
+		return
+	}
+
+	err = app.directory.Stop("eventSubscriber")
+	if err != nil {
+		msg := fmt.Sprintf("Could not stop event subscriber: %v", err)
+		log.Error(msg)
+		return
 	}
 }
 
 func main() {
-	app = new(App)
-
-	readConf()
-
 	log = logger.Log("main")
+
+	app = NewApp()
+
+	log.Notice("Loading Services")
+	app.LoadServices()
+
 	log.Notice("Starting foodtastechess")
+	app.Start()
 
-	log.Info("Initializing services")
-	app.initServices()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8181"
+	for {
+		select {
+		case <-app.StopChan:
+			log.Notice("Quitting.")
+			return
+		case <-c:
+			fmt.Println("")
+			app.Stop()
+		}
 	}
-	app.HttpServer.Serve("0.0.0.0", port)
 }

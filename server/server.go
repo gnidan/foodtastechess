@@ -2,12 +2,17 @@ package server
 
 import (
 	"fmt"
-	"github.com/hydrogen18/stoppableListener"
+	"github.com/codegangsta/negroni"
+	"gopkg.in/tylerb/graceful.v1"
 	"net"
 	"net/http"
+	"time"
 
+	"foodtastechess/config"
+	"foodtastechess/directory"
 	"foodtastechess/logger"
-	"foodtastechess/queries"
+	"foodtastechess/server/api"
+	"foodtastechess/server/auth"
 )
 
 var (
@@ -15,34 +20,65 @@ var (
 )
 
 type Server struct {
-	listener *stoppableListener.StoppableListener
-	api      *chessApi
-
-	ClientQueries queries.ClientQueries `inject:"clientQueries"`
+	server   *graceful.Server
+	Api      *api.ChessApi       `inject:"chessApi"`
+	Auth     auth.Authentication `inject:"auth"`
+	Config   config.ServerConfig `inject:"serverConfig"`
+	StopChan chan bool           `inject:"stopChan"`
 }
 
 func New() *Server {
-	s := new(Server)
-	s.api = newChessApi()
-	return s
+	return new(Server)
 }
 
-func (s *Server) Serve(bindAddress string, port string) {
-	s.listen(bindAddress, port)
+func (s *Server) PreProvide(provide directory.Provider) error {
+	err := provide("chessApi", api.New())
+	if err != nil {
+		log.Error(fmt.Sprintf("Could not provide chess API: %v", err))
+		return err
+	}
 
-	http.Serve(s.listener, s.api.handler())
+	err = provide("auth", auth.New())
+	if err != nil {
+		log.Error(fmt.Sprintf("Could not provide auth service: %v", err))
+	}
+	return err
 }
 
-func (s *Server) listen(bindAddress string, port string) {
-	listen := fmt.Sprintf("%s:%s", bindAddress, port)
-	log.Notice("Listening at %s", listen)
-	listener, err := net.Listen("tcp", listen)
-	if err != nil {
-		panic("Could not bind address")
+func (s *Server) Start() error {
+	n := negroni.New()
+	n.Use(negroni.NewRecovery())
+	n.Use(NewLogger())
+	n.UseFunc(s.Auth.LoginRequired)
+	n.UseHandler(s.Api.Handler())
+
+	s.server = &graceful.Server{
+		Timeout: 10 * time.Second,
+		Server: &http.Server{
+			Addr:    s.Config.BindAddress,
+			Handler: n,
+		},
 	}
 
-	s.listener, err = stoppableListener.New(listener)
+	s.listenAndGoServe()
+
+	return nil
+}
+
+func (s *Server) Stop() error {
+	log.Notice("Stopping server")
+	s.server.Stop(1 * time.Second)
+	s.StopChan <- true
+	return nil
+}
+
+func (s *Server) listenAndGoServe() error {
+	log.Notice("Listening at %s", s.Config.BindAddress)
+	listener, err := net.Listen("tcp", s.Config.BindAddress)
 	if err != nil {
-		panic("Could not rebind new listener")
+		return err
 	}
+
+	go s.server.Serve(listener)
+	return nil
 }

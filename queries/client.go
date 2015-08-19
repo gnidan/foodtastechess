@@ -2,6 +2,7 @@ package queries
 
 import (
 	"foodtastechess/game"
+	"foodtastechess/users"
 )
 
 // ClientQueries is the interface by which other parts of the system
@@ -16,6 +17,7 @@ type ClientQueries interface {
 // It composes an injected SystemQueries interface that it uses to
 // aggregate information for the supported methods
 type ClientQueryService struct {
+	Users         users.Users   `inject:"users"`
 	SystemQueries SystemQueries `inject:"systemQueries"`
 }
 
@@ -30,20 +32,43 @@ type GameInformation struct {
 	Id         game.Id
 	TurnNumber game.TurnNumber
 	BoardState game.FEN
+	White      users.User
+	Black      users.User
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
 func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
-	var (
-		turnNumberQuery Query           = TurnNumberQuery(id)
-		turnNumber      game.TurnNumber = s.SystemQueries.GetAnswer(turnNumberQuery).(game.TurnNumber)
+	gameInfo := new(GameInformation)
 
-		boardStateQuery Query    = BoardAtTurnQuery(id, turnNumber)
-		boardState      game.FEN = s.SystemQueries.GetAnswer(boardStateQuery).(game.FEN)
-	)
+	turnNumberQ := TurnNumberQuery(id)
+	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
+	gameInfo.TurnNumber = turnNumber
 
-	return GameInformation{
-		TurnNumber: turnNumber,
-		BoardState: boardState,
+	boardStateQ := BoardAtTurnQuery(id, turnNumber)
+	boardState := s.SystemQueries.AnswerQuery(boardStateQ).(game.FEN)
+	gameInfo.BoardState = boardState
+
+	gamePlayersQ := GamePlayersQuery(id)
+	gamePlayers := s.SystemQueries.AnswerQuery(gamePlayersQ).(map[game.Color]string)
+
+	white, found := s.Users.Get(gamePlayers[game.White])
+	if found {
+		gameInfo.White = white
 	}
+
+	black, found := s.Users.Get(gamePlayers[game.Black])
+	if found {
+		gameInfo.Black = black
+	}
+
+	return *gameInfo
+}
+
+type MoveRecord struct {
+	Move                game.AlgebraicMove
+	ResultingBoardState game.FEN
+}
+
+func (s *ClientQueryService) GameHistory(id game.Id) []MoveRecord {
+	return []MoveRecord{}
 }

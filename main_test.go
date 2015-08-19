@@ -27,12 +27,12 @@ type TestService struct {
 func TestServices(t *testing.T) {
 	log = logger.Log("main_test")
 
-	app = new(App)
+	app = NewApp()
 
 	var service TestService
-	app.addDependency("testService", &service)
+	app.directory.AddService("testService", &service)
 
-	app.initServices()
+	app.LoadServices()
 
 	assert := assert.New(t)
 
