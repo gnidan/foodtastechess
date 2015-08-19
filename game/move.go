@@ -126,7 +126,7 @@ func (m *UnboundMove) Translate(pos Position, s *GameState) []Position {
 		}
 	}
 
-	return nil //should not hit this
+	//return nil //should not hit this
 }
 
 func (m *FirstPawnMove) Translate(pos Position, s *GameState) []Position {
