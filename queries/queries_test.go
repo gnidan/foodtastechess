@@ -131,7 +131,7 @@ func (m *MockGameCalculator) AfterMove(initial game.FEN, move game.AlgebraicMove
 }
 
 func (m *MockGameCalculator) ValidMoves(state game.FEN) []game.AlgebraicMove {
-	args := m.Called(initial)
+	args := m.Called(state)
 	return args.Get(0).([]game.AlgebraicMove)
 }
 
