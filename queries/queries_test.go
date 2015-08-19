@@ -130,6 +130,11 @@ func (m *MockGameCalculator) AfterMove(initial game.FEN, move game.AlgebraicMove
 	return args.Get(0).(game.FEN)
 }
 
+func (m *MockGameCalculator) ValidMoves(state game.FEN) []game.AlgebraicMove {
+	args := m.Called(state)
+	return args.Get(0).([]game.AlgebraicMove)
+}
+
 // MockEventsService is a mock that is used as a fake Events
 // service
 type MockEventsService struct {
