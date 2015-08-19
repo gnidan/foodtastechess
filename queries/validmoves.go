@@ -30,6 +30,11 @@ func (q *validMovesAtTurnQuery) getResult() interface{} {
 }
 
 func (q *validMovesAtTurnQuery) computeResult(queries SystemQueries) {
+	dependentQueries := queries.getDependentQueryLookup(q)
+	state := dependentQueries.Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber)).(*boardStateAtTurnQuery).Result
+
+	q.Result = queries.getGameCalculator().ValidMoves(state)
+	q.Answered = true
 }
 
 func (q *validMovesAtTurnQuery) getDependentQueries() []Query {

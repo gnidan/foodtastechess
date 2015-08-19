@@ -69,7 +69,7 @@ func (suite *ValidMovesQueryTestSuite) TestComputeResult() {
 
 		boardStateQ Query = &boardStateAtTurnQuery{
 			GameId:     gameId,
-			TurnNumber: 1,
+			TurnNumber: turnNumber,
 			Result:     expectedState,
 		}
 
