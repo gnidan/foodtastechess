@@ -36,6 +36,9 @@ func (api *ChessApi) PostPopulate() error {
 	restApi.Use(authMiddleware)
 	router, err := rest.MakeRouter(
 		rest.Get("/games", api.GetGames),
+		rest.Get("/games/:id", api.GetGameInfo),
+		rest.Get("/games/:id/history", api.GetGameHistory),
+		rest.Get("/games/:id/validmoves", api.GetGameValidMoves),
 	)
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not initialize Chess API: %v", err))
@@ -56,6 +59,21 @@ func (api *ChessApi) Handler() http.Handler {
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	u := getUser(req)
 	res.WriteJson(fmt.Sprintf("Hello, %s!", u.Name))
+}
+
+func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
+	u := getUser(req)
+	id := req.PathParam("id")
+}
+
+func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) {
+	u := getUser(req)
+	id := req.PathParam("id")
+}
+
+func (api *ChessApi) GetGameValidMoves(res rest.ResponseWriter, req *rest.Request) {
+	u := getUser(req)
+	id := req.PathParam("id")
 }
 
 func getUser(req *rest.Request) users.User {
