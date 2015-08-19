@@ -6,13 +6,6 @@ type Piece interface {
 	Moves() []Move
 }
 
-type Color int
-
-const (
-	White Color = iota
-	Black
-)
-
 type Pawn struct {
 	color Color
 	moves []Move
