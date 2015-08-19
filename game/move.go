@@ -49,7 +49,7 @@ func (s *GameState) ValidMoves(pos Position) []Position {
 	validMoves := []Position{} //make empty array of positions
 	piece := s.PieceAtPosition(pos)
 	if piece == nil { //no piece at position
-		return nil
+		return []Position{}
 	}
 	moves := piece.Moves()
 	for _, move := range moves {
