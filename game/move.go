@@ -38,12 +38,12 @@ type EnPassantMove struct {
 type CastlingMove struct {
 }
 
-
 //Takes FEN and Algebraic, executes move and returns string
 func ExecuteMove(stringFEN string, stringAlgabraic string) string {
-	
-}
+	newStringFEN := ""
 
+	return newStringFEN
+}
 
 func (s *GameState) ValidMoves(pos Position) []Position {
 	validMoves := []Position{} //make empty array of positions
