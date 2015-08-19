@@ -5,6 +5,7 @@ import (
 
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 var log = logger.Log("queries")
@@ -25,12 +26,6 @@ type Query interface {
 type queryRecord struct {
 	Hash       string
 	ComputedAt time.Time
-}
-
-type validMovesAtTurnQuery struct {
-	GameId game.Id
-
-	Result game.ValidMoves
 }
 
 func TurnNumberQuery(id game.Id) Query {
@@ -54,7 +49,7 @@ func MoveAtTurnQuery(id game.Id, turnNumber game.TurnNumber) Query {
 	}
 }
 
-func UserGamesQuery(playerId string) Query {
+func UserGamesQuery(playerId users.Id) Query {
 	return &userGamesQuery{
 		PlayerId: playerId,
 	}
@@ -69,5 +64,12 @@ func DrawOfferStateQuery(gameId game.Id) Query {
 func GamePlayersQuery(id game.Id) Query {
 	return &gamePlayersQuery{
 		GameId: id,
+	}
+}
+
+func ValidMovesAtTurnQuery(gameId game.Id, turnNumber game.TurnNumber) Query {
+	return &validMovesAtTurnQuery{
+		GameId:     gameId,
+		TurnNumber: turnNumber,
 	}
 }

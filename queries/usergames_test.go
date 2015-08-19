@@ -7,6 +7,7 @@ import (
 
 	"foodtastechess/events"
 	"foodtastechess/game"
+	"foodtastechess/users"
 )
 
 type UserGamesQueryTestSuite struct {
@@ -15,7 +16,7 @@ type UserGamesQueryTestSuite struct {
 
 func (suite *UserGamesQueryTestSuite) TestHasResult() {
 	var (
-		playerId            string = "5xvf"
+		playerId            users.Id = "chloe"
 		hasResult, noResult *userGamesQuery
 	)
 
@@ -32,7 +33,7 @@ func (suite *UserGamesQueryTestSuite) TestHasResult() {
 
 func (suite *UserGamesQueryTestSuite) TestDependentQueries() {
 	var (
-		playerId string = "5xvf"
+		playerId users.Id = "bob"
 		query    *userGamesQuery
 
 		expectedDependents = []Query{}
@@ -48,7 +49,7 @@ func (suite *UserGamesQueryTestSuite) TestDependentQueries() {
 
 func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	var (
-		playerId      string = "bob"
+		playerId      users.Id = "bob"
 		query         *userGamesQuery
 		activeGames   []game.Id = []game.Id{5, 6, 7}
 		finishedGames []game.Id = []game.Id{1, 2, 3, 4}
