@@ -6,7 +6,12 @@ import (
 )
 
 type GameState struct {
-	pieceMap map[Position]Piece
+	pieceMap             map[Position]Piece
+	activeColor          Color
+	castlingAvailability []string
+	enPassantTarget      AlgebraicMove
+	halfmoveClock        int
+	fullmoveNumber       int
 }
 
 type Position struct {
@@ -39,6 +44,7 @@ func (s *GameState) PieceAtPosition(pos Position) Piece {
 func (s GameState) ConvertToFEN() FEN {
 	stringFEN := ""
 
+	// 1) PIECE PLACEMENT
 	for rank := 8; rank > 0; rank-- {
 		emptyCount := 0
 		for file := 1; file <= 8; file++ {
@@ -99,9 +105,44 @@ func (s GameState) ConvertToFEN() FEN {
 		}
 	}
 
+	// 2) ACTIVE COLOR
+	stringFEN += " " //add space
+	if s.activeColor == White {
+		stringFEN += "w"
+	} else {
+		stringFEN += "b"
+	}
+
+	// 3) CASTLING AVAILABILITY
+	stringFEN += " " //add space
+	if len(s.castlingAvailability) == 0 {
+		stringFEN += "-"
+	} else {
+		for _, castlePiece := range s.castlingAvailability {
+			//s.castlingAvailability = []string{"A", castlePiece}
+			stringFEN += castlePiece
+		}
+	} //esle
+
+	// 4) EN PASSANT TARGET SQUARE
+	stringFEN += " " //add space
+	if s.enPassantTarget == "" {
+		stringFEN += "-"
+	} else {
+		stringFEN += string(s.enPassantTarget)
+	}
+
+	// 5) HALFMOVE CLOCK
+	stringFEN += " " //add space
+	stringFEN += strconv.Itoa(s.halfmoveClock)
+
+	// 6) FULLMOVE NUMBER
+	stringFEN += " " //add space
+	stringFEN += strconv.Itoa(s.fullmoveNumber)
+
 	newFEN := FEN(stringFEN)
 	return newFEN
-}
+} //ConvertToFEN
 
 func (fen FEN) ConvertToState() GameState {
 	stringFEN := string(fen)
@@ -115,10 +156,11 @@ func (fen FEN) ConvertToState() GameState {
 	//		Within each rank, each piece is described with it's letter (uppercase for White)
 	//		Number of consecutive open spaces in a rank are denoted by a digit (1 through 8)
 	//		Each rank is separated by a '/'
+LoopPiecePlacement:
 	for rank >= 1 {
 		next := stringFEN[:1]
 		nextInt, _ := strconv.Atoi(next)
-		stringFEN = stringFEN[1:len(stringFEN)]
+		stringFEN = stringFEN[1:len(stringFEN)] //remove char to be processed
 
 		//Pieces
 		if next == "P" {
@@ -167,25 +209,81 @@ func (fen FEN) ConvertToState() GameState {
 			rank -= 1
 			file = 1
 		}
-
-	}
+		if stringFEN[:1] == " " {
+			break LoopPiecePlacement
+		}
+	} //rof
+	gameState = NewGameState(pieceMap)
 
 	// 2) ACTIVE COLOR -  'w' indicated white moves next, 'b' indicates black
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
+	if stringFEN[:1] == "w" {
+		gameState.activeColor = White
+	} else {
+		gameState.activeColor = Black
+	}
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
 
 	// 3) CASTLING AVAILABILITY - K/Q/k/q for Black/White King/Queenside; '-' for neither
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
+	if stringFEN[:1] == "-" {
+		stringFEN = stringFEN[1:len(stringFEN)] //remove dash, don't need to loop
+	} else {
+	LoopCastlingAvailability:
+		for {
+			next := stringFEN[:1]
+			if next == " " { // end of available castling pieces
+				break LoopCastlingAvailability
+			}
+			gameState.castlingAvailability = append(gameState.castlingAvailability, next)
+			stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
+		} //rof
+	} //esle
 
 	// 4) EN PASSANT TARGET SQUARE - in algabraic notation.  If none, then it is '-'.
 	//			Recorded as space behind pawn after a double move (even if an opponent isn't near)
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
+	next := stringFEN[:1]
+	if next == "-" {
+		gameState.enPassantTarget = AlgebraicMove("")
+		stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
+	} else {
+		temp := ""
+	LoopEnPassantTarget:
+		for {
+			next = stringFEN[:1]
+			if next != " " {
+				temp += next
+				stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
+			} else {
+				break LoopEnPassantTarget
+			}
+		} //rof
+		gameState.enPassantTarget = AlgebraicMove(temp)
+	} //else
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
 
 	// 5) HALFMOVE CLOCK - number of halfmoves since last capture or pawn advance. Used for 50-move rule
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
+	next = stringFEN[:1]
+	nextInt, _ := strconv.Atoi(next)
+	gameState.halfmoveClock = nextInt
 
 	// 6) FULLMOVE NUMBER - starts at 1, increments after Black's move
+	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
+	next = stringFEN[:1]
+	nextInt, _ = strconv.Atoi(next)
+	gameState.fullmoveNumber = nextInt
 
-	gameState = NewGameState(pieceMap)
 	return gameState
-}
+} //ConvertToState
 
-func InitializeBoard() GameState {
+func InitializeFEN() FEN {
+	FEN := FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	return FEN
+} //InitializeFEN
+
+func InitializeState() GameState {
 	gameState := GameState{}
 	gameState.pieceMap = map[Position]Piece{
 		//White
@@ -224,5 +322,11 @@ func InitializeBoard() GameState {
 		NewPosition(7, 8): NewKnight(Black),
 		NewPosition(8, 8): NewRook(Black),
 	}
+
+	gameState.activeColor = White
+	gameState.castlingAvailability = []string{"K", "Q", "k", "q"}
+	gameState.enPassantTarget = AlgebraicMove("")
+	gameState.halfmoveClock = 0
+	gameState.fullmoveNumber = 1
 	return gameState
-}
+} //InitializeState
