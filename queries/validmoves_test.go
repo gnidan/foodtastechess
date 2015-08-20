@@ -21,7 +21,10 @@ func (suite *ValidMovesQueryTestSuite) TestHasResult() {
 	hasResult.GameId = 5
 	hasResult.TurnNumber = 11
 	hasResult.Result = []game.MoveRecord{
-		game.MoveRecord{"horsey", "checkmate"},
+		game.MoveRecord{
+			Move:                "horsey",
+			ResultingBoardState: "checkmate",
+		},
 	}
 	hasResult.Answered = true
 
