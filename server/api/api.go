@@ -68,10 +68,10 @@ func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
 	intId, err := strconv.Atoi(id)
 	gameId := game.Id(intId)
 	if err != nil {
-		log.debug("Recieved an invalid gameid, it was not an int: %s", val)
+		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
 		rest.Error(res,err.Error(),http.StatusNotFound)
 	} else {
-		res.WriteJson(api.ClientQueries.GameInformation(intId))
+		res.WriteJson(api.ClientQueries.GameInformation(gameId))
 	}
 }
 
@@ -80,10 +80,10 @@ func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) 
 	intId, err := strconv.Atoi(id)
 	gameId := game.Id(intId)
 	if err != nil {
-		log.debug("Recieved an invalid gameid, it was not an int: %s", val)
+		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
 		rest.Error(res,err.Error(),http.StatusNotFound)
 	} else {
-		res.WriteJson(api.ClientQueries.GameHistory(intId))
+		res.WriteJson(api.ClientQueries.GameHistory(gameId))
 	}
 }
 
@@ -92,10 +92,10 @@ func (api *ChessApi) GetGameValidMoves(res rest.ResponseWriter, req *rest.Reques
 	intId, err := strconv.Atoi(id)
 	gameId := game.Id(intId)
 	if err != nil {
-		log.debug("Recieved an invalid gameid, it was not an int: %s", val)
+		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
 		rest.Error(res,err.Error(),http.StatusNotFound)
 	} else {
-		res.WriteJson(api.ClientQueries.ValidMoves(intId))
+		res.WriteJson(api.ClientQueries.ValidMoves(gameId))
 	}
 }
 

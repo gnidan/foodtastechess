@@ -11,7 +11,7 @@ type validMovesAtTurnQuery struct {
 	TurnNumber game.TurnNumber
 
 	Answered bool
-	Result   []game.AlgebraicMove
+	Result   []game.MoveRecord
 
 	// Compose a queryRecord
 	queryRecord `bson:",inline"`

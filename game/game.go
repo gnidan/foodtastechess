@@ -63,3 +63,8 @@ const (
 	White Color = iota
 	Black Color = iota
 )
+
+type MoveRecord struct {
+   Move                AlgebraicMove
+   ResultingBoardState FEN
+}

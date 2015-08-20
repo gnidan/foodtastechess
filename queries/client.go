@@ -11,8 +11,10 @@ import (
 // ClientQueries is the interface by which other parts of the system
 // may get information about current and past states of games.
 type ClientQueries interface {
+	UserGames(user users.Users) []game.Id
 	GameInformation(id game.Id) GameInformation
-	GameHistory(id game.Id) []MoveRecord
+	GameHistory(id game.Id) []game.MoveRecord
+	ValidMoves(id game.Id) []game.MoveRecord
 }
 
 // ClientQueryService provides a concrete implementation of the
@@ -32,8 +34,17 @@ func NewClientQueryService() *ClientQueryService {
 	return cqs
 }
 
-// GameInformation is a structural representation of the current
-// state of a game.
+// UserGames accepts a user and returns a list of game ID's
+func (s *ClientQueryService) Games(user users.User) []game.Id {
+	var (
+      games []game.Id = []game.Id{}
+   )
+
+	gamesQ := UserGamesQuery(user.Id) // Yo nick, throwing this one to you, not really picking up on user package. These also don't have tests written
+	games = s.SystemQueries.AnswerQuery(gamesQ).([]game.Id)
+	return games
+}
+
 type GameInformation struct {
 	Id         game.Id
 	TurnNumber game.TurnNumber
@@ -70,14 +81,9 @@ func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 	return *gameInfo
 }
 
-type MoveRecord struct {
-	Move                game.AlgebraicMove
-	ResultingBoardState game.FEN
-}
-
-func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
+func (s *ClientQueryService) GameHistory(gameId game.Id) []game.MoveRecord {
 	var (
-		history []MoveRecord = []MoveRecord{}
+		history []game.MoveRecord = []game.MoveRecord{}
 	)
 
 	turnNumberQ := TurnNumberQuery(gameId)
@@ -95,7 +101,7 @@ func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
 			move = s.SystemQueries.AnswerQuery(moveQ).(game.AlgebraicMove)
 		}
 
-		record := MoveRecord{Move: move, ResultingBoardState: state}
+		record := game.MoveRecord{Move: move, ResultingBoardState: state}
 
 		history = append(history, record)
 	}
@@ -103,17 +109,15 @@ func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
 	return history
 }
 
-type ValidMove struct {
-	Move                game.AlgebraicMove
-	Source              game.Position
-	Destination         game.Position
-	ResultingBoardState game.FEN
-}
-
-func (s *ClientQueryService) ValidMoves(gameId game.Id) []ValidMove {
+func (s *ClientQueryService) ValidMoves(gameId game.Id) []game.MoveRecord {
 	var (
-		validMoves []ValidMove = []ValidMove{}
+		validMoves []game.MoveRecord = []game.MoveRecord{}
 	)
+	turnNumberQ := TurnNumberQuery(gameId)
+   turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
+
+	validMovesQ := ValidMovesAtTurnQuery(gameId, turnNumber)
+	validMoves = s.SystemQueries.AnswerQuery(validMovesQ).([]game.MoveRecord)
 
 	return validMoves
 }
