@@ -31,9 +31,24 @@ func (q *validMovesAtTurnQuery) getResult() interface{} {
 
 func (q *validMovesAtTurnQuery) computeResult(queries SystemQueries) {
 	dependentQueries := queries.getDependentQueryLookup(q)
-	state := dependentQueries.Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber)).(*boardStateAtTurnQuery).Result
+	calculator := queries.getGameCalculator()
 
-	q.Result = queries.getGameCalculator().ValidMoves(state)
+	state := dependentQueries.
+		Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber)).(*boardStateAtTurnQuery).Result
+
+	moveRecords := []game.MoveRecord{}
+
+	validMoves := calculator.ValidMoves(state)
+	for _, algebraicMove := range validMoves {
+		result := calculator.AfterMove(state, algebraicMove)
+
+		moveRecords = append(moveRecords, game.MoveRecord{
+			Move:                algebraicMove,
+			ResultingBoardState: result,
+		})
+	}
+
+	q.Result = moveRecords
 	q.Answered = true
 }
 

@@ -11,7 +11,7 @@ import (
 // ClientQueries is the interface by which other parts of the system
 // may get information about current and past states of games.
 type ClientQueries interface {
-	UserGames(user users.Users) []game.Id
+	UserGames(user users.User) []game.Id
 	GameInformation(id game.Id) GameInformation
 	GameHistory(id game.Id) []game.MoveRecord
 	ValidMoves(id game.Id) []game.MoveRecord
@@ -35,12 +35,12 @@ func NewClientQueryService() *ClientQueryService {
 }
 
 // UserGames accepts a user and returns a list of game ID's
-func (s *ClientQueryService) Games(user users.User) []game.Id {
+func (s *ClientQueryService) UserGames(user users.User) []game.Id {
 	var (
-      games []game.Id = []game.Id{}
-   )
+		games []game.Id = []game.Id{}
+	)
 
-	gamesQ := UserGamesQuery(user.Id) // Yo nick, throwing this one to you, not really picking up on user package. These also don't have tests written
+	gamesQ := UserGamesQuery(user.Uuid)
 	games = s.SystemQueries.AnswerQuery(gamesQ).([]game.Id)
 	return games
 }
@@ -114,7 +114,7 @@ func (s *ClientQueryService) ValidMoves(gameId game.Id) []game.MoveRecord {
 		validMoves []game.MoveRecord = []game.MoveRecord{}
 	)
 	turnNumberQ := TurnNumberQuery(gameId)
-   turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
+	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
 
 	validMovesQ := ValidMovesAtTurnQuery(gameId, turnNumber)
 	validMoves = s.SystemQueries.AnswerQuery(validMovesQ).([]game.MoveRecord)
