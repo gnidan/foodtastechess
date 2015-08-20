@@ -65,6 +65,6 @@ const (
 )
 
 type MoveRecord struct {
-   Move                AlgebraicMove
-   ResultingBoardState FEN
+	Move                AlgebraicMove
+	ResultingBoardState FEN
 }
