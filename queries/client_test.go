@@ -180,6 +180,39 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 	}
 }
 
+func (suite *ClientQueriesTestSuite) TestValidMoves() {
+	assert := assert.New(suite.T())
+	var (
+		gameId game.Id = 13
+
+		turnNumber game.TurnNumber = 39
+
+		validMoves []game.MoveRecord = []game.MoveRecord{
+			game.MoveRecord{
+				Move:                "finishing move",
+				ResultingBoardState: "checkmate",
+			},
+			game.MoveRecord{
+				Move:                "blundering mistake",
+				ResultingBoardState: "disaster and famine for years",
+			},
+		}
+	)
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", TurnNumberQuery(gameId)).
+		Return(turnNumber)
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", ValidMovesAtTurnQuery(gameId, turnNumber)).
+		Return(validMoves).
+		Once()
+
+	result := suite.clientQueries.ValidMoves(gameId)
+
+	assert.Equal(validMoves, result)
+}
+
 func TestClientQueriesTestSuite(t *testing.T) {
 	suite.Run(t, new(ClientQueriesTestSuite))
 }
