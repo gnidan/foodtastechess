@@ -59,7 +59,7 @@ type MockUsers struct {
 	mock.Mock
 }
 
-func (m *MockUsers) Get(uuid string) (users.User, bool) {
+func (m *MockUsers) Get(uuid users.Id) (users.User, bool) {
 	args := m.Called(uuid)
 	return args.Get(0).(users.User), args.Bool(1)
 }
@@ -130,6 +130,11 @@ func (m *MockGameCalculator) AfterMove(initial game.FEN, move game.AlgebraicMove
 	return args.Get(0).(game.FEN)
 }
 
+func (m *MockGameCalculator) ValidMoves(state game.FEN) []game.AlgebraicMove {
+	args := m.Called(state)
+	return args.Get(0).([]game.AlgebraicMove)
+}
+
 // MockEventsService is a mock that is used as a fake Events
 // service
 type MockEventsService struct {
@@ -150,7 +155,7 @@ func (m *MockEventsService) EventsOfTypeForGame(gameId game.Id, eventType events
 	return args.Get(0).([]events.Event)
 }
 
-func (m *MockEventsService) EventsOfTypeForPlayer(userId string, eventType events.EventType) []events.Event {
+func (m *MockEventsService) EventsOfTypeForPlayer(userId users.Id, eventType events.EventType) []events.Event {
 	args := m.Called(userId, eventType)
 	return args.Get(0).([]events.Event)
 }

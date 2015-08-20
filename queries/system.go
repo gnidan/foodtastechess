@@ -1,8 +1,11 @@
 package queries
 
 import (
+	"github.com/op/go-logging"
+
 	"foodtastechess/events"
 	"foodtastechess/game"
+	"foodtastechess/logger"
 )
 
 type SystemQueries interface {
@@ -14,6 +17,7 @@ type SystemQueries interface {
 }
 
 type SystemQueryService struct {
+	log            *logging.Logger
 	GameCalculator game.GameCalculator `inject:"gameCalculator"`
 	Events         events.Events       `inject:"eventsService"`
 	Cache          Cache               `inject:"queriesCache"`
@@ -28,6 +32,7 @@ func (s *SystemQueryService) IsComplete() bool {
 
 func NewSystemQueryService() SystemQueries {
 	sqs := new(SystemQueryService)
+	sqs.log = logger.Log("systemqueries")
 	return sqs
 }
 
@@ -40,8 +45,6 @@ func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 }
 
 func (s *SystemQueryService) computeAnswer(query Query, skipSearch bool) {
-	log.Debug("Computing answer for query %v", query)
-
 	if !skipSearch && s.Cache.Get(query) {
 		s.Cache.Delete(query)
 	}

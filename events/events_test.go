@@ -11,6 +11,7 @@ import (
 	"foodtastechess/directory"
 	"foodtastechess/game"
 	"foodtastechess/logger"
+	"foodtastechess/users"
 )
 
 type EventsTestSuite struct {
@@ -59,7 +60,9 @@ func (suite *EventsTestSuite) TestReceive() {
 
 	event := NewMoveEvent(gameId, turnNumber, move)
 
-	suite.mockSubscriber.On("Receive", event).Return(nil)
+	suite.mockSubscriber.
+		On("Receive", event).
+		Return(nil)
 
 	suite.events.Receive(event)
 
@@ -73,8 +76,8 @@ func (suite *EventsTestSuite) TestReceive() {
 
 func (suite *EventsTestSuite) TestEventsOfTypeForPlayer() {
 	var (
-		player1 string = "bob"
-		player2 string = "frank"
+		player1 users.Id = "bob"
+		player2 users.Id = "frank"
 
 		events []Event = []Event{
 			NewGameStartEvent(1, player1, player2),

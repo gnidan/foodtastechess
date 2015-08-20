@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"foodtastechess/game"
+	"foodtastechess/users"
 )
 
 type Event struct {
@@ -13,8 +14,8 @@ type Event struct {
 	Type        EventType       `sql:"index"`
 	GameId      game.Id         `sql:"index"`
 	TurnNumber  game.TurnNumber `sql:"index"`
-	WhiteId     string          `sql:"index"`
-	BlackId     string          `sql:"index"`
+	WhiteId     users.Id        `sql:"index"`
+	BlackId     users.Id        `sql:"index"`
 	Move        game.AlgebraicMove
 	Offerer     game.Color
 	OfferAccept bool
@@ -54,7 +55,7 @@ func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.Algebrai
 	return *event
 }
 
-func NewGameStartEvent(gameId game.Id, whiteId, blackId string) Event {
+func NewGameStartEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	event := new(Event)
 	event.Type = GameStartType
 	event.GameId = gameId
@@ -63,7 +64,7 @@ func NewGameStartEvent(gameId game.Id, whiteId, blackId string) Event {
 	return *event
 }
 
-func NewGameEndEvent(gameId game.Id, whiteId, blackId string) Event {
+func NewGameEndEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	event := new(Event)
 	event.Type = GameEndType
 	event.GameId = gameId

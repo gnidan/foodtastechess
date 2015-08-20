@@ -9,7 +9,7 @@ import (
 )
 
 type Users interface {
-	Get(uuid string) (User, bool)
+	Get(uuid Id) (User, bool)
 	GetByAuthId(authId string) (User, bool)
 	Save(user *User) error
 }
@@ -47,7 +47,7 @@ func (s *UsersService) PostPopulate() error {
 	return err
 }
 
-func (s *UsersService) Get(uuid string) (User, bool) {
+func (s *UsersService) Get(uuid Id) (User, bool) {
 	user := User{}
 	s.db.Where(&User{Uuid: uuid}).First(&user)
 	found := (user.Id != 0)

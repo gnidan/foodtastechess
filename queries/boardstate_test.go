@@ -35,7 +35,7 @@ func (suite *BoardStateQueryTestSuite) TestDependentQueries() {
 	var (
 		gameId     game.Id         = 1
 		turnNumber game.TurnNumber = 5
-		query      *boardStateAtTurnQuery
+		query      Query
 
 		expectedDependents = []Query{
 			BoardAtTurnQuery(gameId, turnNumber-1),
@@ -43,7 +43,7 @@ func (suite *BoardStateQueryTestSuite) TestDependentQueries() {
 		}
 	)
 
-	query = BoardAtTurnQuery(gameId, turnNumber).(*boardStateAtTurnQuery)
+	query = BoardAtTurnQuery(gameId, turnNumber)
 
 	actualDependents := query.getDependentQueries()
 
@@ -109,6 +109,7 @@ func (suite *BoardStateQueryTestSuite) TestComputeResult() {
 	assert.Equal(position1, query1.Result)
 }
 
+// Entrypoint
 func TestBoardStateQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(BoardStateQueryTestSuite))
 }
