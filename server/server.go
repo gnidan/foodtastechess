@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/codegangsta/negroni"
+	"github.com/rs/cors"
 	"gopkg.in/tylerb/graceful.v1"
 	"net"
 	"net/http"
@@ -47,6 +48,7 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 
 func (s *Server) Start() error {
 	n := negroni.New()
+	n.Use(cors.Default())
 	n.Use(negroni.NewRecovery())
 	n.Use(NewLogger())
 	n.UseFunc(s.Auth.LoginRequired)
