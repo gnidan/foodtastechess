@@ -11,8 +11,10 @@ import (
 // ClientQueries is the interface by which other parts of the system
 // may get information about current and past states of games.
 type ClientQueries interface {
-	GameInformation(id game.Id) GameInformation
-	GameHistory(id game.Id) []MoveRecord
+	UserGames(user users.User) []game.Id
+	GameInformation(id game.Id) (GameInformation, bool)
+	GameHistory(id game.Id) ([]game.MoveRecord, bool)
+	ValidMoves(id game.Id) ([]game.MoveRecord, bool)
 }
 
 // ClientQueryService provides a concrete implementation of the
@@ -32,8 +34,17 @@ func NewClientQueryService() *ClientQueryService {
 	return cqs
 }
 
-// GameInformation is a structural representation of the current
-// state of a game.
+// UserGames accepts a user and returns a list of game ID's
+func (s *ClientQueryService) UserGames(user users.User) []game.Id {
+	var (
+		games []game.Id = []game.Id{}
+	)
+
+	gamesQ := UserGamesQuery(user.Uuid)
+	games = s.SystemQueries.AnswerQuery(gamesQ).([]game.Id)
+	return games
+}
+
 type GameInformation struct {
 	Id         game.Id
 	TurnNumber game.TurnNumber
@@ -43,8 +54,15 @@ type GameInformation struct {
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
-func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
+func (s *ClientQueryService) GameInformation(id game.Id) (GameInformation, bool) {
 	gameInfo := new(GameInformation)
+
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(id)).(bool)
+	if !gameExists {
+		return *gameInfo, false
+	}
+
+	gameInfo.Id = id
 
 	turnNumberQ := TurnNumberQuery(id)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
@@ -67,18 +85,18 @@ func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 		gameInfo.Black = black
 	}
 
-	return *gameInfo
+	return *gameInfo, true
 }
 
-type MoveRecord struct {
-	Move                game.AlgebraicMove
-	ResultingBoardState game.FEN
-}
-
-func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
+func (s *ClientQueryService) GameHistory(gameId game.Id) ([]game.MoveRecord, bool) {
 	var (
-		history []MoveRecord = []MoveRecord{}
+		history []game.MoveRecord = []game.MoveRecord{}
 	)
+
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(gameId)).(bool)
+	if !gameExists {
+		return history, false
+	}
 
 	turnNumberQ := TurnNumberQuery(gameId)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
@@ -95,25 +113,29 @@ func (s *ClientQueryService) GameHistory(gameId game.Id) []MoveRecord {
 			move = s.SystemQueries.AnswerQuery(moveQ).(game.AlgebraicMove)
 		}
 
-		record := MoveRecord{Move: move, ResultingBoardState: state}
+		record := game.MoveRecord{Move: move, ResultingBoardState: state}
 
 		history = append(history, record)
 	}
 
-	return history
+	return history, true
 }
 
-type ValidMove struct {
-	Move                game.AlgebraicMove
-	Source              game.Position
-	Destination         game.Position
-	ResultingBoardState game.FEN
-}
-
-func (s *ClientQueryService) ValidMoves(gameId game.Id) []ValidMove {
+func (s *ClientQueryService) ValidMoves(gameId game.Id) ([]game.MoveRecord, bool) {
 	var (
-		validMoves []ValidMove = []ValidMove{}
+		validMoves []game.MoveRecord = []game.MoveRecord{}
 	)
 
-	return validMoves
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(gameId)).(bool)
+	if !gameExists {
+		return validMoves, false
+	}
+
+	turnNumberQ := TurnNumberQuery(gameId)
+	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
+
+	validMovesQ := ValidMovesAtTurnQuery(gameId, turnNumber)
+	validMoves = s.SystemQueries.AnswerQuery(validMovesQ).([]game.MoveRecord)
+
+	return validMoves, true
 }

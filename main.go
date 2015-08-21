@@ -9,6 +9,7 @@ import (
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
+	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
 	"foodtastechess/server"
@@ -35,23 +36,22 @@ func NewApp() *App {
 	return app
 }
 
-func (app *App) LoadServices() {
+func (app *App) LoadServices() error {
 	var err error
 
 	app.StopChan = make(chan bool, 1)
-
-	systemQueries := queries.NewSystemQueryService().(*queries.SystemQueryService)
-	systemQueries.Complete = true
 
 	services := map[string](interface{}){
 		"configProvider":  app.config,
 		"httpServer":      server.New(),
 		"clientQueries":   queries.NewClientQueryService(),
-		"systemQueries":   systemQueries,
-		"eventSubscriber": queries.NewQueryBuffer(),
+		"systemQueries":   queries.NewSystemQueryService(),
 		"users":           users.NewUsers(),
 		"events":          events.NewEvents(),
-		"stopChan":        app.StopChan,
+		"gameCalculator":  game.NewGameCalculator(),
+		"eventSubscriber": queries.NewQueryBuffer(),
+
+		"stopChan": app.StopChan,
 	}
 
 	for name, value := range services {
@@ -66,8 +66,10 @@ func (app *App) LoadServices() {
 	if err != nil {
 		msg := fmt.Sprintf("Could not start directory: %v", err)
 		log.Error(msg)
-		return
+		return err
 	}
+
+	return err
 }
 
 func (app *App) Start() {
@@ -107,8 +109,13 @@ func main() {
 
 	app = NewApp()
 
-	log.Notice("Loading Services")
-	app.LoadServices()
+	log.Notice("Hello!")
+
+	log.Notice("Loading Directory")
+	err := app.LoadServices()
+	if err != nil {
+		log.Fatalf("Could not load directory")
+	}
 
 	log.Notice("Starting foodtastechess")
 	app.Start()

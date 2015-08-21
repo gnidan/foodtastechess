@@ -50,14 +50,14 @@ func (s *UsersService) PostPopulate() error {
 func (s *UsersService) Get(uuid Id) (User, bool) {
 	user := User{}
 	s.db.Where(&User{Uuid: uuid}).First(&user)
-	found := (user.Id != 0)
+	found := (user.Uuid == uuid)
 	return user, found
 }
 
 func (s *UsersService) GetByAuthId(authId string) (User, bool) {
 	user := User{}
 	s.db.Where(&User{AuthIdentifier: authId}).First(&user)
-	found := (user.Id != 0)
+	found := (user.AuthIdentifier == authId)
 	return user, found
 }
 

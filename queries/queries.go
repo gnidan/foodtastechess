@@ -28,6 +28,13 @@ type queryRecord struct {
 	ComputedAt time.Time
 }
 
+func GameQuery(id game.Id) Query {
+	return &gameQuery{
+		GameId:   id,
+		Answered: false,
+	}
+}
+
 func TurnNumberQuery(id game.Id) Query {
 	return &turnNumberQuery{
 		GameId: id,

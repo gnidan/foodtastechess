@@ -95,6 +95,9 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 
 	// given our expected queries, return our respective expected results
 	suite.mockSystemQueries.
+		On("AnswerQuery", GameQuery(gameId)).
+		Return(true)
+	suite.mockSystemQueries.
 		On("AnswerQuery", turnNumberQuery).
 		Return(expectedTurnNumber)
 	suite.mockSystemQueries.
@@ -112,14 +115,27 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		Return(expectedBlack, true)
 
 	// run the test call
-	gameInfo := suite.clientQueries.GameInformation(gameId)
+	gameInfo, found := suite.clientQueries.GameInformation(gameId)
 
 	assert := assert.New(suite.T())
 	// and expect that the game info we get back has the pretend values
+	assert.Equal(true, found)
 	assert.Equal(expectedTurnNumber, gameInfo.TurnNumber)
 	assert.Equal(expectedBoardState, gameInfo.BoardState)
 	assert.Equal(expectedWhite, gameInfo.White)
 	assert.Equal(expectedBlack, gameInfo.Black)
+}
+
+func (suite *ClientQueriesTestSuite) TestGameInformationGameDNE() {
+	var gameId game.Id = 1
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", GameQuery(gameId)).
+		Return(false)
+
+	_, found := suite.clientQueries.GameInformation(gameId)
+	assert := assert.New(suite.T())
+	assert.Equal(false, found)
 }
 
 func (suite *ClientQueriesTestSuite) TestGameHistory() {
@@ -142,6 +158,9 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 	)
 
 	suite.mockSystemQueries.
+		On("AnswerQuery", GameQuery(gameId)).
+		Return(true)
+	suite.mockSystemQueries.
 		On("AnswerQuery", TurnNumberQuery(gameId)).
 		Return(game.TurnNumber(len(moves)))
 
@@ -161,8 +180,9 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 			Return(state)
 	}
 
-	history := suite.clientQueries.GameHistory(gameId)
+	history, found := suite.clientQueries.GameHistory(gameId)
 
+	assert.Equal(true, found)
 	assert.Equal(len(states), len(history))
 
 	for i, record := range history {
@@ -178,6 +198,43 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 		assert.Equal(expectedMove, record.Move)
 		assert.Equal(expectedState, record.ResultingBoardState)
 	}
+}
+
+func (suite *ClientQueriesTestSuite) TestValidMoves() {
+	assert := assert.New(suite.T())
+	var (
+		gameId game.Id = 13
+
+		turnNumber game.TurnNumber = 39
+
+		validMoves []game.MoveRecord = []game.MoveRecord{
+			game.MoveRecord{
+				Move:                "finishing move",
+				ResultingBoardState: "checkmate",
+			},
+			game.MoveRecord{
+				Move:                "blundering mistake",
+				ResultingBoardState: "disaster and famine for years",
+			},
+		}
+	)
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", GameQuery(gameId)).
+		Return(true)
+	suite.mockSystemQueries.
+		On("AnswerQuery", TurnNumberQuery(gameId)).
+		Return(turnNumber)
+
+	suite.mockSystemQueries.
+		On("AnswerQuery", ValidMovesAtTurnQuery(gameId, turnNumber)).
+		Return(validMoves).
+		Once()
+
+	result, found := suite.clientQueries.ValidMoves(gameId)
+
+	assert.Equal(validMoves, result)
+	assert.Equal(true, found)
 }
 
 func TestClientQueriesTestSuite(t *testing.T) {

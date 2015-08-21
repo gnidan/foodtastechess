@@ -38,8 +38,8 @@ func (suite *EventsTestSuite) SetupTest() {
 
 	d = directory.New()
 	d.AddService("configProvider", suite.ConfigProvider)
-	d.AddService("events", events)
 	d.AddService("eventSubscriber", subscriber)
+	d.AddService("events", events)
 
 	if err := d.Start(); err != nil {
 		suite.log.Fatalf("Could not start directory: %v", err)

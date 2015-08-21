@@ -51,9 +51,23 @@ func (u AlgebraicMove) Value() (driver.Value, error) {
 type Position interface {
 }
 
-type Color int
+type Color string
 
 const (
-	White Color = iota
-	Black Color = iota
+	White Color = "white"
+	Black Color = "black"
 )
+
+func (u *Color) Scan(value interface{}) error {
+	*u = Color(value.([]byte))
+	return nil
+}
+
+func (u Color) Value() (driver.Value, error) {
+	return string(u), nil
+}
+
+type MoveRecord struct {
+	Move                AlgebraicMove
+	ResultingBoardState FEN
+}
