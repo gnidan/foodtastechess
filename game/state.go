@@ -9,7 +9,7 @@ type GameState struct {
 	pieceMap             map[Position]Piece
 	activeColor          Color
 	castlingAvailability []string
-	enPassantTarget      AlgebraicMove
+	enPassantTarget      string
 	halfmoveClock        int
 	fullmoveNumber       int
 }
@@ -245,7 +245,7 @@ LoopPiecePlacement:
 	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
 	next := stringFEN[:1]
 	if next == "-" {
-		gameState.enPassantTarget = AlgebraicMove("")
+		gameState.enPassantTarget = ""
 		stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
 	} else {
 		temp := ""
@@ -259,19 +259,25 @@ LoopPiecePlacement:
 				break LoopEnPassantTarget
 			}
 		} //rof
-		gameState.enPassantTarget = AlgebraicMove(temp)
+		gameState.enPassantTarget = temp
 	} //else
 	stringFEN = stringFEN[1:len(stringFEN)] //Remove processed char
 
 	// 5) HALFMOVE CLOCK - number of halfmoves since last capture or pawn advance. Used for 50-move rule
 	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
 	next = stringFEN[:1]
+	nextAgainTemp := stringFEN[:1]
+	if nextAgainTemp != " " {
+		//halfmove number is 2 digits
+		next = next + nextAgainTemp
+		stringFEN = stringFEN[1:len(stringFEN)] //Remove second digit
+	}
 	nextInt, _ := strconv.Atoi(next)
 	gameState.halfmoveClock = nextInt
 
 	// 6) FULLMOVE NUMBER - starts at 1, increments after Black's move
 	stringFEN = stringFEN[1:len(stringFEN)] //Remove space
-	next = stringFEN[:1]
+	next = stringFEN[:len(stringFEN)]       //fullmove nubmer is rest of string
 	nextInt, _ = strconv.Atoi(next)
 	gameState.fullmoveNumber = nextInt
 
@@ -325,7 +331,7 @@ func InitializeState() GameState {
 
 	gameState.activeColor = White
 	gameState.castlingAvailability = []string{"K", "Q", "k", "q"}
-	gameState.enPassantTarget = AlgebraicMove("")
+	gameState.enPassantTarget = ""
 	gameState.halfmoveClock = 0
 	gameState.fullmoveNumber = 1
 	return gameState
