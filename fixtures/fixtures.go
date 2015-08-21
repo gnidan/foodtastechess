@@ -87,7 +87,7 @@ func (f *Fixtures) userFixtures() []users.User {
 func (f *Fixtures) runGameFixtures() {
 	var (
 		numGames            int     = 16
-		nextMoveProbability float64 = 0.8
+		nextMoveProbability float64 = 0.9
 	)
 
 	usersService := f.Users.(*users.UsersService)
