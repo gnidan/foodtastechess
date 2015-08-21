@@ -18,7 +18,7 @@ func (s *GameCalculatorService) StartingFEN() FEN {
 }
 
 func (s *GameCalculatorService) AfterMove(initial FEN, move AlgebraicMove) FEN {
-	return AfterMove(initial, move)
+	return AfterMove(move, initial)
 }
 
 func (s *GameCalculatorService) ValidMoves(state FEN) []AlgebraicMove {
