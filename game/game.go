@@ -48,9 +48,6 @@ func (u AlgebraicMove) Value() (driver.Value, error) {
 	return string(u), nil
 }
 
-type Position interface {
-}
-
 type Color string
 
 const (
