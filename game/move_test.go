@@ -79,11 +79,16 @@ func (s *MoveTestSuite) TestMoveConstructor() {
 	nextFEN = AfterMove(AlgebraicMove("Pg3-g4"), nextFEN) //white moves pawn to g4
 	nextFEN = AfterMove(AlgebraicMove("Pe5-e4"), nextFEN) //black moves pawn to e4
 	nextFEN = AfterMove(AlgebraicMove("Bg2-h3"), nextFEN) //white moves bishop to h3
+	nextFEN = AfterMove(AlgebraicMove("Qh4-g3"), nextFEN) //black moves queen to h3
 
-	nextFEN = AfterMove(AlgebraicMove("Qh4-g3"), nextFEN) //white moves queen to h3
 	//not all possible moves are valid, because some would make white put self into check
 	assert.NotEqual(AllPossibleMoves(nextFEN), AllValidMoves(nextFEN))
 
-	//state = nextFEN.ConvertToState()
-	//assert.Equal("1", state.ValidMovesAtPos(NewPosition(3, 8)))
+	nextFEN = AfterMove(AlgebraicMove("Ph2xg3"), nextFEN)   //white pawn captures black queen
+	nextFEN = AfterMove(AlgebraicMove("Pe4-e3"), nextFEN)   //black pawn moves forward
+	nextFEN = AfterMove(AlgebraicMove("Pd2-d4"), nextFEN)   //white pawn moves out 2
+	nextFEN = AfterMove(AlgebraicMove("Pe3-e2"), nextFEN)   //black pawn moves forward
+	nextFEN = AfterMove(AlgebraicMove("Ng5-e6"), nextFEN)   //white knight moves
+	nextFEN = AfterMove(AlgebraicMove("Pe2xf1=Q"), nextFEN) //black pawn promotion to queen w/capture
+	assert.Equal(FEN("r3kbnr/pp1n1ppp/n3N3/2p5/P2P2P1/6PB/1PP2P2/RNBQ1qK1 w - - 0 16"), nextFEN)
 }
