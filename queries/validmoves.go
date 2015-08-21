@@ -36,8 +36,6 @@ func (q *validMovesAtTurnQuery) computeResult(queries SystemQueries) {
 	state := dependentQueries.
 		Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber)).(*boardStateAtTurnQuery).Result
 
-	log.Debug("Board state: %v", state)
-
 	moveRecords := []game.MoveRecord{}
 
 	validMoves := calculator.ValidMoves(state)
