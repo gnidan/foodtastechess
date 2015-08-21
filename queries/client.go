@@ -134,8 +134,12 @@ func (s *ClientQueryService) ValidMoves(gameId game.Id) ([]game.MoveRecord, bool
 	turnNumberQ := TurnNumberQuery(gameId)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
 
+	s.log.Debug("Turn Number: %v", turnNumber)
+
 	validMovesQ := ValidMovesAtTurnQuery(gameId, turnNumber)
 	validMoves = s.SystemQueries.AnswerQuery(validMovesQ).([]game.MoveRecord)
+
+	s.log.Debug("%v", validMoves)
 
 	return validMoves, true
 }

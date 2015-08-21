@@ -59,7 +59,7 @@ func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.Algebrai
 
 func NewGameCreateEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	event := new(Event)
-	event.Type = GameStartType
+	event.Type = GameCreateType
 	event.GameId = gameId
 	event.WhiteId = whiteId
 	event.BlackId = blackId

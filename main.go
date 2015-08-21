@@ -50,6 +50,7 @@ func (app *App) LoadServices() error {
 		"events":          events.NewEvents(),
 		"gameCalculator":  game.NewGameCalculator(),
 		"eventSubscriber": queries.NewQueryBuffer(),
+		"fixtures":        events.NewFixtures(),
 
 		"stopChan": app.StopChan,
 	}
@@ -86,6 +87,14 @@ func (app *App) Start() {
 		log.Error(msg)
 		return
 	}
+
+	err = app.directory.Start("fixtures")
+	if err != nil {
+		msg := fmt.Sprintf("Could not populate fixtures: %v", err)
+		log.Error(msg)
+		return
+	}
+
 }
 
 func (app *App) Stop() {

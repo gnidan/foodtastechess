@@ -5,7 +5,9 @@ logger:
     levels:
         config: 1
         directory: 5
-        clientqueries: 6
+        clientqueries: 5
+        queries: 5
+        game: 6
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"
@@ -31,3 +33,8 @@ database:
     username: "$MARIADB_ENV_MYSQL_USER"
     password: "$MARIADB_ENV_MYSQL_PASSWORD"
     database: "$MARIADB_ENV_MYSQL_DATABASE"
+
+fixtures:
+    enabled: true
+    whiteid: "a85b7293-500e-4820-9e53-f227f4cf3fec"
+    blackid: "bob"

@@ -18,7 +18,7 @@ type validMovesAtTurnQuery struct {
 }
 
 func (q *validMovesAtTurnQuery) hash() string {
-	return fmt.Sprintf("boardstate:%v:%v", q.GameId, q.TurnNumber)
+	return fmt.Sprintf("validmoves:%v:%v", q.GameId, q.TurnNumber)
 }
 
 func (q *validMovesAtTurnQuery) hasResult() bool {
@@ -35,6 +35,8 @@ func (q *validMovesAtTurnQuery) computeResult(queries SystemQueries) {
 
 	state := dependentQueries.
 		Lookup(BoardAtTurnQuery(q.GameId, q.TurnNumber)).(*boardStateAtTurnQuery).Result
+
+	log.Debug("Board state: %v", state)
 
 	moveRecords := []game.MoveRecord{}
 

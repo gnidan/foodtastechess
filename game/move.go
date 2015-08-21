@@ -273,9 +273,15 @@ func AllValidMoves(fen FEN) []AlgebraicMove {
 	fullMovesList := []AlgebraicMove{}
 	for file := 1; file <= 8; file++ {
 		for rank := 1; rank <= 8; rank++ {
-			fullMovesList = append(fullMovesList, state.ValidMovesAtPos(NewPosition(file, rank))...)
+			movesForPosition := state.ValidMovesAtPos(NewPosition(file, rank))
+			if len(movesForPosition) > 0 {
+				log.Debug("Moves for %v: %v", NewPosition(file, rank), movesForPosition)
+			}
+			fullMovesList = append(fullMovesList, movesForPosition...)
 		} //for rank
 	} //for file
+
+	log.Debug("moves list: %v", fullMovesList)
 
 	return fullMovesList
 }
@@ -300,6 +306,7 @@ func (s *GameState) ValidMovesAtPos(pos Position) []AlgebraicMove {
 	if piece == nil || s.activeColor != piece.Color() { //empty position or opponent piece, no moves
 		return []AlgebraicMove{}
 	}
+	log.Debug("Generating valid moves for position %v", pos)
 	moves := piece.Moves()
 	possibleMoves := []AlgebraicMove{} //moves that can be executed, disregarding invalid checkmate suicide
 	for _, move := range moves {
@@ -480,7 +487,7 @@ func (m *FirstPawnMove) Translate(pos Position, s *GameState) []AlgebraicMove {
 			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
 		}
 		if pawn.Color() == Black && pos.rank == 7 {
-			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
+			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "7" + "-" + strNewFile + "5")}
 		}
 	}
 	return nil
