@@ -17,9 +17,6 @@ func TestPieceTestSuite(t *testing.T) {
 
 func (s *PieceTestSuite) TestPieceConstructor() {
 	pawn := NewPawn(Black)
-
 	assert := assert.New(s.T())
-	//assert.Equal(expected, actual)
-	//assert.Equal(1,0) //force fail
 	assert.Equal(pawn.color, Black)
 }
