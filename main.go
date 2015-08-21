@@ -9,6 +9,7 @@ import (
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
+	"foodtastechess/fixtures"
 	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
@@ -50,7 +51,7 @@ func (app *App) LoadServices() error {
 		"events":          events.NewEvents(),
 		"gameCalculator":  game.NewGameCalculator(),
 		"eventSubscriber": queries.NewQueryBuffer(),
-		"fixtures":        events.NewFixtures(),
+		"fixtures":        fixtures.NewFixtures(),
 
 		"stopChan": app.StopChan,
 	}

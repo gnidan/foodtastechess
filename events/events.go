@@ -107,3 +107,7 @@ func (s *EventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.T
 		First(&event)
 	return event
 }
+
+func (s *EventsService) ResetDB() {
+	s.db.Delete(Event{})
+}

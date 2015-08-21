@@ -70,3 +70,10 @@ func (s *UsersService) Save(user *User) error {
 
 	return nil
 }
+
+// GetAll. Not exposed as part of Users interface
+func (s *UsersService) GetAll() []User {
+	var users []User
+	s.db.Find(&users)
+	return users
+}

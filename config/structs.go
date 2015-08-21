@@ -33,6 +33,4 @@ type DatabaseConfig struct {
 
 type FixturesConfig struct {
 	Enabled bool
-	WhiteId string
-	BlackId string
 }

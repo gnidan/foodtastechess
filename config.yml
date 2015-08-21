@@ -8,6 +8,7 @@ logger:
         clientqueries: 5
         queries: 5
         game: 6
+        fixtures: 6
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"
@@ -36,5 +37,3 @@ database:
 
 fixtures:
     enabled: true
-    whiteid: "a85b7293-500e-4820-9e53-f227f4cf3fec"
-    blackid: "bob"
