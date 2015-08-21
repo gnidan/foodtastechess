@@ -32,6 +32,12 @@ func newGraph() graph {
 }
 
 func (g *injectGraph) add(name string, value interface{}) error {
+	for _, injectObject := range g.graph.Objects() {
+		if injectObject.Name == name {
+			return nil
+		}
+	}
+
 	var complete bool
 
 	objectPre, ok := value.(objectPreProvide)

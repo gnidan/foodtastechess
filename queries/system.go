@@ -2,7 +2,10 @@ package queries
 
 import (
 	"github.com/op/go-logging"
+	"reflect"
+	"time"
 
+	"foodtastechess/directory"
 	"foodtastechess/events"
 	"foodtastechess/game"
 	"foodtastechess/logger"
@@ -19,15 +22,12 @@ type SystemQueries interface {
 type SystemQueryService struct {
 	log            *logging.Logger
 	GameCalculator game.GameCalculator `inject:"gameCalculator"`
-	Events         events.Events       `inject:"eventsService"`
+	Events         events.Events       `inject:"events"`
 	Cache          Cache               `inject:"queriesCache"`
-
-	Complete bool
 }
 
-// just until things get implemented
-func (s *SystemQueryService) IsComplete() bool {
-	return s.Complete
+func (s *SystemQueryService) PreProvide(provide directory.Provider) error {
+	return provide("queriesCache", NewQueriesCache())
 }
 
 func NewSystemQueryService() SystemQueries {
@@ -48,7 +48,20 @@ func (s *SystemQueryService) computeAnswer(query Query, skipSearch bool) {
 	if !skipSearch && s.Cache.Get(query) {
 		s.Cache.Delete(query)
 	}
+
 	query.computeResult(s)
+
+	canMarkComputedAt := reflect.ValueOf(query).
+		Elem().
+		FieldByName("ComputedAt").
+		CanSet()
+	if canMarkComputedAt {
+		reflect.ValueOf(query).
+			Elem().
+			FieldByName("ComputedAt").
+			Set(reflect.ValueOf(time.Now()))
+	}
+
 	s.Cache.Store(query)
 }
 

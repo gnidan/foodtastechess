@@ -5,6 +5,7 @@ logger:
     levels:
         config: 1
         directory: 5
+        clientqueries: 6
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"

@@ -12,9 +12,9 @@ import (
 // may get information about current and past states of games.
 type ClientQueries interface {
 	UserGames(user users.User) []game.Id
-	GameInformation(id game.Id) GameInformation
-	GameHistory(id game.Id) []game.MoveRecord
-	ValidMoves(id game.Id) []game.MoveRecord
+	GameInformation(id game.Id) (GameInformation, bool)
+	GameHistory(id game.Id) ([]game.MoveRecord, bool)
+	ValidMoves(id game.Id) ([]game.MoveRecord, bool)
 }
 
 // ClientQueryService provides a concrete implementation of the
@@ -54,8 +54,15 @@ type GameInformation struct {
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
-func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
+func (s *ClientQueryService) GameInformation(id game.Id) (GameInformation, bool) {
 	gameInfo := new(GameInformation)
+
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(id)).(bool)
+	if !gameExists {
+		return *gameInfo, false
+	}
+
+	gameInfo.Id = id
 
 	turnNumberQ := TurnNumberQuery(id)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
@@ -78,13 +85,18 @@ func (s *ClientQueryService) GameInformation(id game.Id) GameInformation {
 		gameInfo.Black = black
 	}
 
-	return *gameInfo
+	return *gameInfo, true
 }
 
-func (s *ClientQueryService) GameHistory(gameId game.Id) []game.MoveRecord {
+func (s *ClientQueryService) GameHistory(gameId game.Id) ([]game.MoveRecord, bool) {
 	var (
 		history []game.MoveRecord = []game.MoveRecord{}
 	)
+
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(gameId)).(bool)
+	if !gameExists {
+		return history, false
+	}
 
 	turnNumberQ := TurnNumberQuery(gameId)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
@@ -106,18 +118,24 @@ func (s *ClientQueryService) GameHistory(gameId game.Id) []game.MoveRecord {
 		history = append(history, record)
 	}
 
-	return history
+	return history, true
 }
 
-func (s *ClientQueryService) ValidMoves(gameId game.Id) []game.MoveRecord {
+func (s *ClientQueryService) ValidMoves(gameId game.Id) ([]game.MoveRecord, bool) {
 	var (
 		validMoves []game.MoveRecord = []game.MoveRecord{}
 	)
+
+	gameExists := s.SystemQueries.AnswerQuery(GameQuery(gameId)).(bool)
+	if !gameExists {
+		return validMoves, false
+	}
+
 	turnNumberQ := TurnNumberQuery(gameId)
 	turnNumber := s.SystemQueries.AnswerQuery(turnNumberQ).(game.TurnNumber)
 
 	validMovesQ := ValidMovesAtTurnQuery(gameId, turnNumber)
 	validMoves = s.SystemQueries.AnswerQuery(validMovesQ).([]game.MoveRecord)
 
-	return validMoves
+	return validMoves, true
 }

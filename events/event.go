@@ -40,10 +40,12 @@ func (u EventType) Value() (driver.Value, error) {
 
 const (
 	MoveType              EventType = "move"
+	GameCreateType        EventType = "game:create"
 	GameStartType         EventType = "game:start"
 	GameEndType           EventType = "game:end"
 	DrawOfferType         EventType = "offer:create"
 	DrawOfferResponseType EventType = "offer:respond"
+	// don't forget to add to queries/buffer.go if necessary
 )
 
 func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.AlgebraicMove) Event {
@@ -52,6 +54,15 @@ func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.Algebrai
 	event.GameId = gameId
 	event.TurnNumber = turnNumber
 	event.Move = move
+	return *event
+}
+
+func NewGameCreateEvent(gameId game.Id, whiteId, blackId users.Id) Event {
+	event := new(Event)
+	event.Type = GameStartType
+	event.GameId = gameId
+	event.WhiteId = whiteId
+	event.BlackId = blackId
 	return *event
 }
 

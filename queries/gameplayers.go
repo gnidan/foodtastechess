@@ -13,6 +13,9 @@ type gamePlayersQuery struct {
 
 	Answered bool
 	Result   map[game.Color]users.Id
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 func (q *gamePlayersQuery) hasResult() bool {
@@ -24,8 +27,14 @@ func (q *gamePlayersQuery) getResult() interface{} {
 }
 
 func (q *gamePlayersQuery) computeResult(queries SystemQueries) {
-	gameStart := queries.getEvents().
-		EventsOfTypeForGame(q.GameId, events.GameStartType)[0]
+	gameStarts := queries.getEvents().
+		EventsOfTypeForGame(q.GameId, events.GameStartType)
+	if len(gameStarts) == 0 {
+		q.Answered = true
+		return
+	}
+
+	gameStart := gameStarts[0]
 
 	q.Result = make(map[game.Color]users.Id)
 	q.Result[game.White] = gameStart.WhiteId

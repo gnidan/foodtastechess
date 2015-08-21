@@ -39,6 +39,7 @@ func (api *ChessApi) PostPopulate() error {
 	router, err := rest.MakeRouter(
 		rest.Get("/games", api.GetGames),
 		rest.Get("/games/:id", api.GetGameInfo),
+		rest.Get("/games/:id/", api.GetGameInfo),
 		rest.Get("/games/:id/history", api.GetGameHistory),
 		rest.Get("/games/:id/validmoves", api.GetGameValidMoves),
 	)
@@ -55,7 +56,7 @@ func (api *ChessApi) PostPopulate() error {
 }
 
 func (api *ChessApi) Handler() http.Handler {
-	return api.restApi.MakeHandler()
+	return http.StripPrefix("/api", api.restApi.MakeHandler())
 }
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
@@ -69,10 +70,19 @@ func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
 	gameId := game.Id(intId)
 	if err != nil {
 		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
-		rest.Error(res, err.Error(), http.StatusNotFound)
-	} else {
-		res.WriteJson(api.ClientQueries.GameInformation(gameId))
+		rest.NotFound(res, req)
+		return
 	}
+
+	gameInfo, found := api.ClientQueries.GameInformation(gameId)
+
+	if !found {
+		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
+		rest.NotFound(res, req)
+		return
+	}
+
+	res.WriteJson(gameInfo)
 }
 
 func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) {
@@ -81,10 +91,17 @@ func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) 
 	gameId := game.Id(intId)
 	if err != nil {
 		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
-		rest.Error(res, err.Error(), http.StatusNotFound)
-	} else {
-		res.WriteJson(api.ClientQueries.GameHistory(gameId))
+		rest.NotFound(res, req)
+		return
 	}
+
+	history, found := api.ClientQueries.GameHistory(gameId)
+	if !found {
+		rest.NotFound(res, req)
+		return
+	}
+
+	res.WriteJson(history)
 }
 
 func (api *ChessApi) GetGameValidMoves(res rest.ResponseWriter, req *rest.Request) {
@@ -93,10 +110,16 @@ func (api *ChessApi) GetGameValidMoves(res rest.ResponseWriter, req *rest.Reques
 	gameId := game.Id(intId)
 	if err != nil {
 		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
-		rest.Error(res, err.Error(), http.StatusNotFound)
-	} else {
-		res.WriteJson(api.ClientQueries.ValidMoves(gameId))
+		rest.NotFound(res, req)
 	}
+
+	validMoves, found := api.ClientQueries.ValidMoves(gameId)
+	if !found {
+		rest.NotFound(res, req)
+		return
+	}
+
+	res.WriteJson(validMoves)
 }
 
 func getUser(req *rest.Request) users.User {

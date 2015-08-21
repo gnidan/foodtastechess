@@ -13,6 +13,9 @@ type userGamesQuery struct {
 
 	Answered bool
 	Result   []game.Id
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 func (q *userGamesQuery) hasResult() bool {
