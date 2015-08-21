@@ -4,6 +4,7 @@ logger:
     location: stdout
     levels:
         config: 1
+        directory: 5
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"

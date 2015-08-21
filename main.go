@@ -107,7 +107,9 @@ func main() {
 
 	app = NewApp()
 
-	log.Notice("Loading Services")
+	log.Notice("Hello!")
+
+	log.Notice("Loading Directory")
 	app.LoadServices()
 
 	log.Notice("Starting foodtastechess")
