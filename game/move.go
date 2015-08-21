@@ -491,14 +491,24 @@ func (m *AdvancingMove) Translate(pos Position, s *GameState) []AlgebraicMove {
 		file: pos.file,
 		rank: pos.rank + m.rankDelta,
 	}
+	algebraicList := []AlgebraicMove{}
 	if s.PieceAtPosition(newPos) == nil {
 		strOrigFile := intToFile(pos.file)
 		strOrigRank := strconv.Itoa(pos.rank)
 		strNewFile := intToFile(newPos.file)
 		strNewRank := strconv.Itoa(newPos.rank)
-		return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + strOrigRank + "-" + strNewFile + strNewRank)}
-	}
-	return nil
+		if newPos.rank == 1 || newPos.rank == 8 {
+			//Pawn promotion, return 4 moves
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"-"+strNewFile+strNewRank+"=Q"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"-"+strNewFile+strNewRank+"=N"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"-"+strNewFile+strNewRank+"=R"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"-"+strNewFile+strNewRank+"=B"))
+		} else {
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"-"+strNewFile+strNewRank))
+		}
+	} //fi
+
+	return algebraicList
 }
 
 func (m *CapturingMove) Translate(pos Position, s *GameState) []AlgebraicMove {
@@ -510,15 +520,24 @@ func (m *CapturingMove) Translate(pos Position, s *GameState) []AlgebraicMove {
 	if s.PieceAtPosition(newPos) == nil {
 		return nil
 	}
+	algebraicList := []AlgebraicMove{}
 	//piece in pos must be opponent
 	if s.PieceAtPosition(newPos).Color() != s.PieceAtPosition(pos).Color() {
 		strOrigFile := intToFile(pos.file)
 		strOrigRank := strconv.Itoa(pos.rank)
 		strNewFile := intToFile(newPos.file)
 		strNewRank := strconv.Itoa(newPos.rank)
-		return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + strOrigRank + "x" + strNewFile + strNewRank)}
+		if newPos.rank == 1 || newPos.rank == 8 {
+			//Pawn promotion, return 4 moves
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"x"+strNewFile+strNewRank+"=Q"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"x"+strNewFile+strNewRank+"=N"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"x"+strNewFile+strNewRank+"=R"))
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"x"+strNewFile+strNewRank+"=B"))
+		} else {
+			algebraicList = append(algebraicList, AlgebraicMove("P"+strOrigFile+strOrigRank+"x"+strNewFile+strNewRank))
+		}
 	}
-	return nil
+	return algebraicList
 } //Translate - CapturingMove
 
 func (m *EnPassantMove) Translate(pos Position, s *GameState) []AlgebraicMove {
