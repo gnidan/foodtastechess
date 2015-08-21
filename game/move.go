@@ -346,18 +346,20 @@ OuterLoop:
 
 		for _, oppMove := range oppPossibleMoves {
 			stringAN := string(oppMove)
-			stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
-			oppFileStr := stringAN[:1]           // file string
-			stringAN = stringAN[1:len(stringAN)] //Remove file char
-			oppRankStr := stringAN[:1]           // rank string
+			if stringAN != "0-0" && stringAN != "0-0-0" {
+				stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
+				oppFileStr := stringAN[:1]           // file string
+				stringAN = stringAN[1:len(stringAN)] //Remove file char
+				oppRankStr := stringAN[:1]           // rank string
 
-			oppFile := fileToInt(oppFileStr)
-			oppRank, _ := strconv.Atoi(oppRankStr)
+				oppFile := fileToInt(oppFileStr)
+				oppRank, _ := strconv.Atoi(oppRankStr)
 
-			if oppFile == kingPosFile && oppRank == kingPosRank {
-				//opponent can take king on next move, invalid
-				continue OuterLoop
-			} //fi
+				if oppFile == kingPosFile && oppRank == kingPosRank {
+					//opponent can take king on next move, invalid
+					continue OuterLoop
+				} //fi
+			}
 		} //rof oppMove
 		validMoves = append(validMoves, move) //move is valid if it hits here
 	} //rof move
