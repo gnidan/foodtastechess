@@ -20,13 +20,18 @@ func (suite *ValidMovesQueryTestSuite) TestHasResult() {
 	hasResult = new(validMovesAtTurnQuery)
 	hasResult.GameId = 5
 	hasResult.TurnNumber = 11
-	hasResult.Result = []game.AlgebraicMove{"Qe7"}
+	hasResult.Result = []game.MoveRecord{
+		game.MoveRecord{
+			Move:                "horsey",
+			ResultingBoardState: "checkmate",
+		},
+	}
 	hasResult.Answered = true
 
 	noResult = new(validMovesAtTurnQuery)
 	noResult.GameId = 2
 	noResult.TurnNumber = 6
-	noResult.Result = []game.AlgebraicMove{"Ra1"}
+	noResult.Result = []game.MoveRecord{}
 
 	assert := assert.New(suite.T())
 	assert.Equal(true, hasResult.hasResult())
@@ -59,19 +64,28 @@ func (suite *ValidMovesQueryTestSuite) TestComputeResult() {
 		gameId     game.Id         = 1
 		turnNumber game.TurnNumber = 5
 
-		expectedState game.FEN = "gonnawin!"
+		initialState game.FEN = "a daring battle of wits"
 
-		expectedValidMoves = []game.AlgebraicMove{
+		fakeMoves = []game.AlgebraicMove{
 			"goodmove",
 			"badmove",
 			"bestmove",
 		}
 
+		fakeOutcomes = []game.FEN{
+			"check!",
+			"ball in hand ?!",
+			"checkmate",
+		}
+
 		boardStateQ Query = &boardStateAtTurnQuery{
 			GameId:     gameId,
 			TurnNumber: turnNumber,
-			Result:     expectedState,
+			Result:     initialState,
 		}
+
+		// we'll calculate the pairs below
+		expectedResult []game.MoveRecord
 
 		validMovesQ *validMovesAtTurnQuery = ValidMovesAtTurnQuery(gameId, turnNumber).(*validMovesAtTurnQuery)
 	)
@@ -80,14 +94,31 @@ func (suite *ValidMovesQueryTestSuite) TestComputeResult() {
 
 	suite.mockSystemQueries.
 		On("getDependentQueryLookup", validMovesQ).
-		Return(NewQueryLookup(boardStateQ))
+		Return(NewQueryLookup(boardStateQ)).
+		Once()
 
 	suite.mockGameCalculator.
-		On("ValidMoves", expectedState).
-		Return(expectedValidMoves)
+		On("ValidMoves", initialState).
+		Return(fakeMoves).
+		Once()
+
+	expectedResult = []game.MoveRecord{}
+	for i, move := range fakeMoves {
+		outcome := fakeOutcomes[i]
+
+		expectedResult = append(expectedResult, game.MoveRecord{
+			Move:                move,
+			ResultingBoardState: outcome,
+		})
+
+		suite.mockGameCalculator.
+			On("AfterMove", initialState, move).
+			Return(outcome).
+			Once()
+	}
 
 	validMovesQ.computeResult(suite.mockSystemQueries)
-	assert.Equal(expectedValidMoves, validMovesQ.Result)
+	assert.Equal(expectedResult, validMovesQ.Result)
 }
 
 // Entrypoint

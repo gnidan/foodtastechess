@@ -12,6 +12,9 @@ type drawOfferStateQuery struct {
 
 	Answered bool
 	result   drawOfferState
+
+	// Compose a queryRecord
+	queryRecord `bson:",inline"`
 }
 
 type drawOfferState string

@@ -40,10 +40,10 @@ func (suite *SystemQueriesTestSuite) SetupTest() {
 	d = directory.New()
 	suite.InitTestConfig()
 	d.AddService("configProvider", suite.ConfigProvider)
-	d.AddService("systemQueries", systemQueries)
-	d.AddService("gameCalculator", &gameCalculator)
-	d.AddService("eventsService", &events)
 	d.AddService("queriesCache", &queriesCache)
+	d.AddService("gameCalculator", &gameCalculator)
+	d.AddService("events", &events)
+	d.AddService("systemQueries", systemQueries)
 
 	if err := d.Start(); err != nil {
 		suite.log.Fatalf("Could not start directory: %v", err)

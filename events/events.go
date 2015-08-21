@@ -35,6 +35,12 @@ type EventsService struct {
 	db  gorm.DB
 }
 
+func NewEvents() Events {
+	service := new(EventsService)
+	service.log = logger.Log("events")
+	return service
+}
+
 func (s *EventsService) PostPopulate() error {
 	// hook for test-suite, make a global table prefix if our config
 	// defines it
@@ -56,12 +62,6 @@ func (s *EventsService) PostPopulate() error {
 	s.db = db
 
 	return err
-}
-
-func NewEvents() Events {
-	service := new(EventsService)
-	service.log = logger.Log("events")
-	return service
 }
 
 func (s *EventsService) Receive(event Event) error {

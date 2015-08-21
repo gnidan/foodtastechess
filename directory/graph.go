@@ -3,7 +3,9 @@ package directory
 import (
 	"fmt"
 	"github.com/facebookgo/inject"
+	"github.com/mgutz/ansi"
 	"sync"
+	"time"
 )
 
 type graph interface {
@@ -30,6 +32,12 @@ func newGraph() graph {
 }
 
 func (g *injectGraph) add(name string, value interface{}) error {
+	for _, injectObject := range g.graph.Objects() {
+		if injectObject.Name == name {
+			return nil
+		}
+	}
+
 	var complete bool
 
 	objectPre, ok := value.(objectPreProvide)
@@ -68,6 +76,7 @@ func (g *injectGraph) populate() error {
 		wg.Add(1)
 
 		go func(name string, value interface{}) {
+			start := time.Now()
 			defer wg.Done()
 			object, ok := value.(objectPostPopulate)
 			if ok {
@@ -76,10 +85,54 @@ func (g *injectGraph) populate() error {
 					log.Fatal(fmt.Sprintf("Could not perform post-population for %s", name))
 				}
 			}
+
+			duration := time.Since(start)
+			logObjectPopulate(name, duration)
 		}(injectObject.Name, injectObject.Value)
 	}
 
 	wg.Wait()
+	log.Info("Done!")
 
 	return nil
+}
+
+var (
+	microColor   = ansi.ColorFunc("cyan")
+	milliColor   = ansi.ColorFunc("yellow")
+	secondsColor = ansi.ColorFunc("red")
+)
+
+func logObjectPopulate(name string, duration time.Duration) {
+	var (
+		value     string
+		unit      string
+		colorFunc func(string) string
+
+		message string
+	)
+
+	s := duration.Seconds()
+	ms := duration.Nanoseconds() / 1000000
+	us := duration.Nanoseconds() / 1000
+
+	if s >= 1 {
+		unit = "s"
+		colorFunc = secondsColor
+		value = fmt.Sprintf("%.2f", s)
+	} else if ms >= 1 {
+		unit = "ms"
+		colorFunc = milliColor
+		value = fmt.Sprintf("%d", ms)
+	} else {
+		unit = "μs"
+		colorFunc = microColor
+		value = fmt.Sprintf("%d", us)
+	}
+
+	message = fmt.Sprintf(
+		"Loaded %s in %s", name, colorFunc(fmt.Sprintf("%s%s", value, unit)),
+	)
+
+	log.Info(message)
 }
