@@ -91,7 +91,6 @@ func (cfg *viperProvider) initSections() {
 	cfg.addSection("database", DatabaseConfig{})
 	cfg.addSection("auth", AuthConfig{})
 	cfg.addSection("cache", QueriesCacheConfig{})
-	cfg.addSection("fixtures", FixturesConfig{})
 }
 
 func (cfg *viperProvider) addSection(section string, configStruct interface{}) {

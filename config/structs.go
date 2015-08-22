@@ -30,7 +30,3 @@ type DatabaseConfig struct {
 	Database string
 	Prefix   string
 }
-
-type FixturesConfig struct {
-	Enabled bool
-}

@@ -34,6 +34,3 @@ database:
     username: "$MARIADB_ENV_MYSQL_USER"
     password: "$MARIADB_ENV_MYSQL_PASSWORD"
     database: "$MARIADB_ENV_MYSQL_DATABASE"
-
-fixtures:
-    enabled: true

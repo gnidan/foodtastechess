@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"foodtastechess/config"
 	"foodtastechess/events"
 	"foodtastechess/game"
 	"foodtastechess/logger"
@@ -16,7 +15,6 @@ import (
 var log *logging.Logger = logger.Log("fixtures")
 
 type Fixtures struct {
-	Config  config.FixturesConfig `inject:"fixturesConfig"`
 	Events  events.Events         `inject:"events"`
 	Users   users.Users           `inject:"users"`
 	Queries queries.ClientQueries `inject:"clientQueries"`
@@ -27,10 +25,6 @@ func NewFixtures() *Fixtures {
 }
 
 func (f *Fixtures) Start() error {
-	if !f.Config.Enabled {
-		return nil
-	}
-
 	log.Info("Resetting events")
 	eventsService := f.Events.(*events.EventsService)
 	eventsService.ResetDB()

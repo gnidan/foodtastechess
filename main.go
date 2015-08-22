@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/op/go-logging"
 	"os"
@@ -26,14 +27,21 @@ type App struct {
 	config    config.ConfigProvider
 	directory directory.Directory
 	StopChan  chan bool `inject:"stopChan"`
+
+	runFixtures *bool
 }
 
 func NewApp() *App {
-	wd, _ := os.Getwd()
-
 	app := new(App)
-	app.directory = directory.New()
+
+	wd, _ := os.Getwd()
 	app.config = config.NewConfigProvider("config", wd)
+
+	app.directory = directory.New()
+
+	app.runFixtures = flag.Bool("fixtures", false, "run fixtures")
+	flag.Parse()
+
 	return app
 }
 
@@ -89,11 +97,13 @@ func (app *App) Start() {
 		return
 	}
 
-	err = app.directory.Start("fixtures")
-	if err != nil {
-		msg := fmt.Sprintf("Could not populate fixtures: %v", err)
-		log.Error(msg)
-		return
+	if *app.runFixtures {
+		err = app.directory.Start("fixtures")
+		if err != nil {
+			msg := fmt.Sprintf("Could not populate fixtures: %v", err)
+			log.Error(msg)
+			return
+		}
 	}
 
 }
