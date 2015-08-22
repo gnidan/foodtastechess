@@ -2,7 +2,12 @@ package game
 
 import (
 	"database/sql/driver"
+	"github.com/op/go-logging"
+
+	"foodtastechess/logger"
 )
+
+var log *logging.Logger = logger.Log("game")
 
 type Id int
 

@@ -139,3 +139,11 @@ func (s *ClientQueryService) ValidMoves(gameId game.Id) ([]game.MoveRecord, bool
 
 	return validMoves, true
 }
+
+func (s *ClientQueryService) FlushCache() {
+	systemQueries := s.SystemQueries.(*SystemQueryService)
+
+	cache := systemQueries.Cache.(*queriesCache)
+
+	cache.collection.Remove(map[string]string{})
+}

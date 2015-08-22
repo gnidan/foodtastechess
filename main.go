@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/op/go-logging"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
+	"foodtastechess/fixtures"
 	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
@@ -25,14 +27,21 @@ type App struct {
 	config    config.ConfigProvider
 	directory directory.Directory
 	StopChan  chan bool `inject:"stopChan"`
+
+	runFixtures *bool
 }
 
 func NewApp() *App {
-	wd, _ := os.Getwd()
-
 	app := new(App)
-	app.directory = directory.New()
+
+	wd, _ := os.Getwd()
 	app.config = config.NewConfigProvider("config", wd)
+
+	app.directory = directory.New()
+
+	app.runFixtures = flag.Bool("fixtures", false, "run fixtures")
+	flag.Parse()
+
 	return app
 }
 
@@ -50,6 +59,7 @@ func (app *App) LoadServices() error {
 		"events":          events.NewEvents(),
 		"gameCalculator":  game.NewGameCalculator(),
 		"eventSubscriber": queries.NewQueryBuffer(),
+		"fixtures":        fixtures.NewFixtures(),
 
 		"stopChan": app.StopChan,
 	}
@@ -86,6 +96,16 @@ func (app *App) Start() {
 		log.Error(msg)
 		return
 	}
+
+	if *app.runFixtures {
+		err = app.directory.Start("fixtures")
+		if err != nil {
+			msg := fmt.Sprintf("Could not populate fixtures: %v", err)
+			log.Error(msg)
+			return
+		}
+	}
+
 }
 
 func (app *App) Stop() {

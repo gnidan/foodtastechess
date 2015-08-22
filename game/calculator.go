@@ -22,5 +22,6 @@ func (s *GameCalculatorService) AfterMove(initial FEN, move AlgebraicMove) FEN {
 }
 
 func (s *GameCalculatorService) ValidMoves(state FEN) []AlgebraicMove {
+	log.Debug("calculating valid moves")
 	return AllValidMoves(state)
 }

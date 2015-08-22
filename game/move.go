@@ -273,7 +273,8 @@ func AllValidMoves(fen FEN) []AlgebraicMove {
 	fullMovesList := []AlgebraicMove{}
 	for file := 1; file <= 8; file++ {
 		for rank := 1; rank <= 8; rank++ {
-			fullMovesList = append(fullMovesList, state.ValidMovesAtPos(NewPosition(file, rank))...)
+			movesForPosition := state.ValidMovesAtPos(NewPosition(file, rank))
+			fullMovesList = append(fullMovesList, movesForPosition...)
 		} //for rank
 	} //for file
 
@@ -339,18 +340,20 @@ OuterLoop:
 
 		for _, oppMove := range oppPossibleMoves {
 			stringAN := string(oppMove)
-			stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
-			oppFileStr := stringAN[:1]           // file string
-			stringAN = stringAN[1:len(stringAN)] //Remove file char
-			oppRankStr := stringAN[:1]           // rank string
+			if stringAN != "0-0" && stringAN != "0-0-0" {
+				stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
+				oppFileStr := stringAN[:1]           // file string
+				stringAN = stringAN[1:len(stringAN)] //Remove file char
+				oppRankStr := stringAN[:1]           // rank string
 
-			oppFile := fileToInt(oppFileStr)
-			oppRank, _ := strconv.Atoi(oppRankStr)
+				oppFile := fileToInt(oppFileStr)
+				oppRank, _ := strconv.Atoi(oppRankStr)
 
-			if oppFile == kingPosFile && oppRank == kingPosRank {
-				//opponent can take king on next move, invalid
-				continue OuterLoop
-			} //fi
+				if oppFile == kingPosFile && oppRank == kingPosRank {
+					//opponent can take king on next move, invalid
+					continue OuterLoop
+				} //fi
+			}
 		} //rof oppMove
 		validMoves = append(validMoves, move) //move is valid if it hits here
 	} //rof move
@@ -480,7 +483,7 @@ func (m *FirstPawnMove) Translate(pos Position, s *GameState) []AlgebraicMove {
 			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
 		}
 		if pawn.Color() == Black && pos.rank == 7 {
-			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
+			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "7" + "-" + strNewFile + "5")}
 		}
 	}
 	return nil
