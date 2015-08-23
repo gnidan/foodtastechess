@@ -63,9 +63,9 @@ func (s *EventsService) PostPopulate() error {
 
 	db, err := gorm.Open("mysql", dsn)
 
-	db.AutoMigrate(&Event{})
-
 	db.LogMode(true)
+
+	db.AutoMigrate(&Event{})
 
 	s.db = db
 
