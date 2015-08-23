@@ -38,6 +38,10 @@ func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	gameEnds := queries.getEvents().
 		EventsOfTypeForPlayer(q.PlayerId, events.GameEndType)
 
+	log.Debug("Got %d game creates", len(gameCreates))
+	log.Debug("Got %d game starts", len(gameStarts))
+	log.Debug("Got %d game ends", len(gameEnds))
+
 	for _, event := range gameCreates {
 		activeGames[event.GameId] = true
 	}
