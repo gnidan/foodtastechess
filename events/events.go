@@ -154,5 +154,6 @@ func (s *EventsService) ResetTestDB() {
 		)
 		return
 	}
-	s.db.Delete(Event{})
+	s.db.DropTable(&Event{})
+	s.db.AutoMigrate(&Event{})
 }

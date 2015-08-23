@@ -86,5 +86,6 @@ func (s *UsersService) ResetTestDB() {
 		)
 		return
 	}
-	s.db.Delete(User{})
+	s.db.DropTable(&User{})
+	s.db.AutoMigrate(&User{})
 }
