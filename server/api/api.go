@@ -72,6 +72,8 @@ func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 }
 
 func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
+	u := getUser(req)
+
 	id := req.PathParam("id")
 	intId, err := strconv.Atoi(id)
 	gameId := game.Id(intId)
@@ -82,14 +84,30 @@ func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
 	}
 
 	gameInfo, found := api.Queries.GameInformation(gameId)
-
 	if !found {
 		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
 		rest.NotFound(res, req)
 		return
 	}
 
-	res.WriteJson(gameInfo)
+	type Response struct {
+		GameInfo   queries.GameInformation `json:",inline"`
+		UserColor  game.Color              `json:",omitempty"`
+		UserActive bool
+	}
+
+	response := new(Response)
+	response.GameInfo = gameInfo
+
+	if u.Uuid == gameInfo.White.Uuid {
+		response.UserColor = game.White
+		response.UserActive = gameInfo.ActiveColor == game.White
+	} else if u.Uuid == gameInfo.Black.Uuid {
+		response.UserColor = game.Black
+		response.UserActive = gameInfo.ActiveColor == game.Black
+	}
+
+	res.WriteJson(response)
 }
 
 func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) {
