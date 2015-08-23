@@ -71,6 +71,8 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	eventsService.ResetTestDB()
 	systemQueries.Cache.Flush()
 
+	time.Sleep(1 * time.Second)
+
 	white := users.User{
 		Uuid:           users.NewId(),
 		Name:           "whitePlayer",

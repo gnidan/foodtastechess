@@ -63,11 +63,6 @@ func (s *EventsService) PostPopulate() error {
 
 	db, err := gorm.Open("mysql", dsn)
 
-	if tablePrefix == "test_" {
-		db.DB().SetMaxIdleConns(1)
-		db.DB().SetMaxOpenConns(1)
-	}
-
 	db.LogMode(true)
 
 	db.AutoMigrate(&Event{})
