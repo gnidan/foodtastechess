@@ -74,8 +74,8 @@ func (s *EventsService) PostPopulate() error {
 func (s *EventsService) startGameIdGenerator() {
 	var nextGameId int
 
-	rows, _ := s.db.Table((Event{}).TableName())
-	Select("IFNULL(MAX(game_id), 0) + 1 AS `next_game_id`").
+	rows, _ := s.db.Table(Event{}.TableName()).
+		Select("IFNULL(MAX(game_id), 0) + 1 AS `next_game_id`").
 		Rows()
 	rows.Next()
 	rows.Scan(&nextGameId)
