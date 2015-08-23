@@ -53,17 +53,24 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 		query         *userGamesQuery
 		activeGames   []game.Id = []game.Id{5, 6, 7}
 		finishedGames []game.Id = []game.Id{1, 2, 3, 4}
+		gameCreates   []events.Event
 		gameStarts    []events.Event
 		gameEnds      []events.Event
 	)
 
 	for _, id := range activeGames {
+		gameCreates = append(gameCreates, events.NewGameCreateEvent(id, playerId, playerId))
 		gameStarts = append(gameStarts, events.NewGameStartEvent(id, playerId, playerId))
 	}
 	for _, id := range finishedGames {
+		gameCreates = append(gameCreates, events.NewGameCreateEvent(id, playerId, playerId))
 		gameStarts = append(gameStarts, events.NewGameStartEvent(id, playerId, playerId))
 		gameEnds = append(gameEnds, events.NewGameEndEvent(id, playerId, playerId))
 	}
+
+	suite.mockEvents.
+		On("EventsOfTypeForPlayer", playerId, events.GameCreateType).
+		Return(gameCreates)
 
 	suite.mockEvents.
 		On("EventsOfTypeForPlayer", playerId, events.GameStartType).
@@ -90,6 +97,7 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	assert.Equal(true, query.hasResult())
 }
 
+// Entrypoint
 func TestUserGamesQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(UserGamesQueryTestSuite))
 }

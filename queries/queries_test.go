@@ -165,6 +165,11 @@ func (m *MockEventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber ga
 	return args.Get(0).(events.Event)
 }
 
+func (m *MockEventsService) NextGameId() game.Id {
+	args := m.Called()
+	return args.Get(0).(game.Id)
+}
+
 // MockQueriesCache is a mock that is used as a fake Cache service
 type MockQueriesCache struct {
 	mock.Mock
@@ -184,4 +189,8 @@ func (m *MockQueriesCache) Store(query Query) {
 func (m *MockQueriesCache) Delete(partial Query) {
 	log.Debug("delete %v", partial)
 	m.Called(partial)
+}
+
+func (m *MockQueriesCache) Flush() {
+	m.Called()
 }

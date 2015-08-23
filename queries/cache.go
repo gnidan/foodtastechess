@@ -12,6 +12,7 @@ type Cache interface {
 	Get(partial Query) bool
 	Store(query Query)
 	Delete(partial Query)
+	Flush()
 }
 
 type queriesCache struct {
@@ -71,6 +72,11 @@ func (c *queriesCache) Delete(partial Query) {
 			fmt.Sprintf("Got error deleting %s: %v", partial.hash(), err),
 		)
 	}
+}
+
+func (c *queriesCache) Flush() {
+	c.collection.DropCollection()
+	c.collection = c.session.DB(c.Config.Database).C("queries")
 }
 
 func lookupFor(query Query) map[string]string {

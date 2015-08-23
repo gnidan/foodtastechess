@@ -96,7 +96,7 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	// given our expected queries, return our respective expected results
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", turnNumberQuery).
 		Return(expectedTurnNumber)
@@ -131,7 +131,7 @@ func (suite *ClientQueriesTestSuite) TestGameInformationGameDNE() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(false)
+		Return(GameStatusNull)
 
 	_, found := suite.clientQueries.GameInformation(gameId)
 	assert := assert.New(suite.T())
@@ -159,7 +159,7 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", TurnNumberQuery(gameId)).
 		Return(game.TurnNumber(len(moves)))
@@ -221,7 +221,7 @@ func (suite *ClientQueriesTestSuite) TestValidMoves() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", TurnNumberQuery(gameId)).
 		Return(turnNumber)

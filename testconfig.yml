@@ -3,7 +3,7 @@ logger:
     level: 6
     location: stdout
     levels:
-        config: 1
+        config: 6
 
 cache:
     hostaddr: "$MONGO_PORT_27017_TCP_ADDR"

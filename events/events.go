@@ -17,6 +17,8 @@ var tablePrefix string = ""
 type Events interface {
 	Receive(event Event) error
 
+	NextGameId() game.Id
+
 	EventsForGame(gameId game.Id) []Event
 	EventsOfTypeForGame(gameId game.Id, eventType EventType) []Event
 	EventsOfTypeForPlayer(userId users.Id, eventType EventType) []Event
@@ -33,11 +35,14 @@ type EventsService struct {
 
 	log *logging.Logger
 	db  gorm.DB
+
+	gameIdChan chan game.Id
 }
 
 func NewEvents() Events {
 	service := new(EventsService)
 	service.log = logger.Log("events")
+	service.gameIdChan = make(chan game.Id, 1)
 	return service
 }
 
@@ -61,7 +66,30 @@ func (s *EventsService) PostPopulate() error {
 
 	s.db = db
 
+	s.startGameIdGenerator()
+
 	return err
+}
+
+func (s *EventsService) startGameIdGenerator() {
+	var nextGameId int
+
+	rows, _ := s.db.Table(Event{}.TableName()).
+		Select("IFNULL(MAX(game_id), 0) + 1 AS `next_game_id`").
+		Rows()
+	rows.Next()
+	rows.Scan(&nextGameId)
+	rows.Close()
+
+	go func(initial int) {
+		for next := initial; ; next++ {
+			s.gameIdChan <- game.Id(next)
+		}
+	}(nextGameId)
+}
+
+func (s *EventsService) NextGameId() game.Id {
+	return <-s.gameIdChan
 }
 
 func (s *EventsService) Receive(event Event) error {
@@ -108,6 +136,12 @@ func (s *EventsService) MoveEventForGameAtTurn(gameId game.Id, turnNumber game.T
 	return event
 }
 
-func (s *EventsService) ResetDB() {
+func (s *EventsService) ResetTestDB() {
+	if tablePrefix != "test_" {
+		s.log.Error(
+			"Cannot reset a database not configured with ConfigTestProvider",
+		)
+		return
+	}
 	s.db.Delete(Event{})
 }

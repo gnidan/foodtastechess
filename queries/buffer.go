@@ -69,11 +69,13 @@ func translateEvent(event events.Event) []Query {
 		}
 	case events.GameStartType:
 		return []Query{
+			GameQuery(event.GameId),
 			UserGamesQuery(event.WhiteId),
 			UserGamesQuery(event.BlackId),
 		}
 	case events.GameEndType:
 		return []Query{
+			GameQuery(event.GameId),
 			UserGamesQuery(event.WhiteId),
 			UserGamesQuery(event.BlackId),
 		}
