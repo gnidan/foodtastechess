@@ -11,7 +11,7 @@ type gameQuery struct {
 	GameId game.Id
 
 	Answered bool
-	Result   bool
+	Result   GameStatus
 
 	// Compose a queryRecord
 	queryRecord `bson:",inline"`
@@ -26,11 +26,24 @@ func (q *gameQuery) getResult() interface{} {
 }
 
 func (q *gameQuery) computeResult(queries SystemQueries) {
-	gameStarts := queries.getEvents().
-		EventsOfTypeForGame(q.GameId, events.GameCreateType)
-
 	q.Answered = true
-	q.Result = len(gameStarts) > 0
+
+	exists := func(e events.EventType) bool {
+		return len(
+			queries.getEvents().
+				EventsOfTypeForGame(q.GameId, e),
+		) > 0
+	}
+
+	if !exists(events.GameCreateType) {
+		q.Result = GameStatusNull
+	} else if !exists(events.GameStartType) {
+		q.Result = GameStatusCreated
+	} else if !exists(events.GameEndType) {
+		q.Result = GameStatusStarted
+	} else {
+		q.Result = GameStatusEnded
+	}
 }
 
 func (q *gameQuery) getDependentQueries() []Query {

@@ -61,7 +61,7 @@ func (api *ChessApi) Handler() http.Handler {
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	u := getUser(req)
-	res.WriteJson(api.ClientQueries.UserGames(u))
+	res.WriteJson(api.ClientQueries.UserGames(u.Uuid))
 }
 
 func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {

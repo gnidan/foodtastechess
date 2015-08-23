@@ -27,7 +27,7 @@ func NewFixtures() *Fixtures {
 func (f *Fixtures) Start() error {
 	log.Info("Resetting events")
 	eventsService := f.Events.(*events.EventsService)
-	eventsService.ResetDB()
+	eventsService.ResetTestDB()
 
 	log.Info("Flushing queries cache")
 	queriesService := f.Queries.(*queries.ClientQueryService)

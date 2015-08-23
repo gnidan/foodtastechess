@@ -40,6 +40,7 @@ func (s *UsersService) PostPopulate() error {
 
 	db, err := gorm.Open("mysql", dsn)
 
+	db.LogMode(true)
 	db.AutoMigrate(&User{})
 
 	s.db = db
@@ -76,4 +77,14 @@ func (s *UsersService) GetAll() []User {
 	var users []User
 	s.db.Find(&users)
 	return users
+}
+
+func (s *UsersService) ResetTestDB() {
+	if tablePrefix != "test_" {
+		log.Error(
+			"Cannot reset a database not configured with ConfigTestProvider",
+		)
+		return
+	}
+	s.db.Delete(User{})
 }

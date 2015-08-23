@@ -27,7 +27,10 @@ func (q *userGamesQuery) getResult() interface{} {
 }
 
 func (q *userGamesQuery) computeResult(queries SystemQueries) {
-	activeGames := make(map[game.Id]events.Event)
+	activeGames := make(map[game.Id]bool)
+
+	gameCreates := queries.getEvents().
+		EventsOfTypeForPlayer(q.PlayerId, events.GameCreateType)
 
 	gameStarts := queries.getEvents().
 		EventsOfTypeForPlayer(q.PlayerId, events.GameStartType)
@@ -35,8 +38,12 @@ func (q *userGamesQuery) computeResult(queries SystemQueries) {
 	gameEnds := queries.getEvents().
 		EventsOfTypeForPlayer(q.PlayerId, events.GameEndType)
 
+	for _, event := range gameCreates {
+		activeGames[event.GameId] = true
+	}
+
 	for _, event := range gameStarts {
-		activeGames[event.GameId] = event
+		activeGames[event.GameId] = true
 	}
 
 	for _, event := range gameEnds {
