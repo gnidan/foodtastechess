@@ -75,7 +75,7 @@ func (s *EventsService) startGameIdGenerator() {
 	var nextGameId int
 
 	rows, _ := s.db.Table("events").
-		Select("MAX(game_id) + 1 AS `next_game_id`").
+		Select("IFNULL(MAX(game_id), 0) + 1 AS `next_game_id`").
 		Rows()
 	rows.Next()
 	rows.Scan(&nextGameId)
