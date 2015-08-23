@@ -5,6 +5,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/op/go-logging"
+	"os"
+	"os/signal"
 
 	"foodtastechess/config"
 	"foodtastechess/game"
@@ -82,8 +84,16 @@ func (s *EventsService) startGameIdGenerator() {
 	rows.Close()
 
 	go func(initial int) {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+
 		for next := initial; ; next++ {
-			s.gameIdChan <- game.Id(next)
+			select {
+			case <-c:
+				break
+			case s.gameIdChan <- game.Id(next):
+				s.log.Debug("Incremented next game ID")
+			}
 		}
 	}(nextGameId)
 }

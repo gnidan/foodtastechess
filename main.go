@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"foodtastechess/commands"
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
@@ -53,6 +54,7 @@ func (app *App) LoadServices() error {
 	services := map[string](interface{}){
 		"configProvider":  app.config,
 		"httpServer":      server.New(),
+		"commands":        commands.New(),
 		"clientQueries":   queries.NewClientQueryService(),
 		"systemQueries":   queries.NewSystemQueryService(),
 		"users":           users.NewUsers(),
