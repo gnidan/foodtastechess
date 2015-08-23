@@ -7,6 +7,7 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"foodtastechess/config"
 	"foodtastechess/game"
@@ -85,7 +86,7 @@ func (s *EventsService) startGameIdGenerator() {
 
 	go func(initial int) {
 		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 		for next := initial; ; next++ {
 			select {

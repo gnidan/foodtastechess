@@ -70,7 +70,7 @@ func makeContext(name string, userId users.Id, params map[string]interface{}) (c
 	ctx.name = name
 	ctx.userId = userId
 
-	if iface, ok := params["game_id"]; ok {
+	if iface, ok := params["gameId"]; ok {
 		ctx.gameId, ok = iface.(game.Id)
 		if !ok {
 			return *ctx, false, "Invalid Game Id"

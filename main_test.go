@@ -117,7 +117,7 @@ func (suite *IntegrationTestSuite) TestGameFlow() {
 	// Join Game
 	ok, msg = suite.Commands.ExecCommand(
 		commands.JoinGame, suite.blackId, map[string]interface{}{
-			"game_id": gameId,
+			"gameId": gameId,
 		},
 	)
 	assert.Equal(true, ok, msg)

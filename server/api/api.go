@@ -47,10 +47,8 @@ func (api *ChessApi) PostPopulate() error {
 		rest.Get("/games/:id/validmoves", api.GetGameValidMoves),
 
 		rest.Post("/games/create", api.PostCreateGame),
-		/*
-			rest.Post("/games/:id/join", api.PostJoinGame),
-			rest.Post("/games/:id/move", api.PostMove),
-		*/
+		rest.Post("/games/:id/join", api.PostJoinGame),
+		rest.Post("/games/:id/move", api.PostMove),
 	)
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not initialize Chess API: %v", err))
@@ -135,7 +133,7 @@ func (api *ChessApi) PostCreateGame(res rest.ResponseWriter, req *rest.Request) 
 	user := getUser(req)
 
 	type createBody struct {
-		Color game.Color `json:"color"`
+		Color game.Color `json:"Color"`
 	}
 
 	body := new(createBody)
@@ -149,6 +147,67 @@ func (api *ChessApi) PostCreateGame(res rest.ResponseWriter, req *rest.Request) 
 	ok, msg := api.Commands.ExecCommand(
 		commands.CreateGame, user.Uuid, map[string]interface{}{
 			"color": body.Color,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostJoinGame(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.JoinGame, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostMove(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	type moveBody struct {
+		Move game.AlgebraicMove `json:"Move"`
+	}
+
+	body := new(moveBody)
+	err = req.DecodeJsonPayload(body)
+	if err != nil || body.Move == "" {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": "Move must be a move"})
+		return
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.Move, user.Uuid, map[string]interface{}{
+			"move":   body.Move,
+			"gameId": gameId,
 		},
 	)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"foodtastechess/commands"
 	"foodtastechess/config"
@@ -143,7 +144,7 @@ func main() {
 	app.Start()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	for {
 		select {
