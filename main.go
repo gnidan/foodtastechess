@@ -6,7 +6,9 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"os/signal"
+	"syscall"
 
+	"foodtastechess/commands"
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
@@ -53,6 +55,7 @@ func (app *App) LoadServices() error {
 	services := map[string](interface{}){
 		"configProvider":  app.config,
 		"httpServer":      server.New(),
+		"commands":        commands.New(),
 		"clientQueries":   queries.NewClientQueryService(),
 		"systemQueries":   queries.NewSystemQueryService(),
 		"users":           users.NewUsers(),
@@ -141,7 +144,7 @@ func main() {
 	app.Start()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	for {
 		select {

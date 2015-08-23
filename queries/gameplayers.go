@@ -27,24 +27,40 @@ func (q *gamePlayersQuery) getResult() interface{} {
 }
 
 func (q *gamePlayersQuery) computeResult(queries SystemQueries) {
-	gameStarts := queries.getEvents().
-		EventsOfTypeForGame(q.GameId, events.GameStartType)
-	if len(gameStarts) == 0 {
-		q.Answered = true
+	q.Answered = true
+
+	dependentQueries := queries.getDependentQueryLookup(q)
+	status := dependentQueries.Lookup(GameQuery(q.GameId)).getResult().(GameStatus)
+
+	if status == GameStatusNull {
 		return
 	}
 
-	gameStart := gameStarts[0]
+	var whiteId users.Id
+	var blackId users.Id
+
+	if status == GameStatusCreated {
+		gameCreate := queries.getEvents().
+			EventsOfTypeForGame(q.GameId, events.GameCreateType)[0]
+		whiteId = gameCreate.WhiteId
+		blackId = gameCreate.BlackId
+	} else {
+		gameStart := queries.getEvents().
+			EventsOfTypeForGame(q.GameId, events.GameStartType)[0]
+		whiteId = gameStart.WhiteId
+		blackId = gameStart.BlackId
+
+	}
 
 	q.Result = make(map[game.Color]users.Id)
-	q.Result[game.White] = gameStart.WhiteId
-	q.Result[game.Black] = gameStart.BlackId
-
-	q.Answered = true
+	q.Result[game.White] = whiteId
+	q.Result[game.Black] = blackId
 }
 
 func (q *gamePlayersQuery) getDependentQueries() []Query {
-	return []Query{}
+	return []Query{
+		GameQuery(q.GameId),
+	}
 }
 
 func (q *gamePlayersQuery) hash() string {

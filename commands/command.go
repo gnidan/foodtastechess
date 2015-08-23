@@ -27,9 +27,7 @@ func makeCommand(name string, cmd command) command {
 const CreateGame = "create_game"
 
 var createGameCommand = makeCommand(CreateGame, command{
-	validators: []validator{
-		gameDoesNotExist,
-	},
+	validators: []validator{},
 	gen: func(ctx context, commands Commands) []events.Event {
 		gameId := commands.events().NextGameId()
 

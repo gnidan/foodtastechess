@@ -5,6 +5,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/op/go-logging"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"foodtastechess/config"
 	"foodtastechess/game"
@@ -60,9 +63,9 @@ func (s *EventsService) PostPopulate() error {
 
 	db, err := gorm.Open("mysql", dsn)
 
-	db.AutoMigrate(&Event{})
-
 	db.LogMode(true)
+
+	db.AutoMigrate(&Event{})
 
 	s.db = db
 
@@ -82,8 +85,16 @@ func (s *EventsService) startGameIdGenerator() {
 	rows.Close()
 
 	go func(initial int) {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
 		for next := initial; ; next++ {
-			s.gameIdChan <- game.Id(next)
+			select {
+			case <-c:
+				break
+			case s.gameIdChan <- game.Id(next):
+				s.log.Debug("Incremented next game ID")
+			}
 		}
 	}(nextGameId)
 }
@@ -143,5 +154,6 @@ func (s *EventsService) ResetTestDB() {
 		)
 		return
 	}
-	s.db.Delete(Event{})
+	s.db.DropTable(&Event{})
+	s.db.AutoMigrate(&Event{})
 }
