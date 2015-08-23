@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"foodtastechess/config"
 	"foodtastechess/game"
@@ -68,6 +69,8 @@ func (s *EventsService) PostPopulate() error {
 	db.AutoMigrate(&Event{})
 
 	s.db = db
+
+	time.Sleep(100 * time.Millisecond)
 
 	s.startGameIdGenerator()
 
