@@ -64,9 +64,19 @@ func translateEvent(event events.Event) []Query {
 			TurnNumberQuery(event.GameId),
 		}
 	case events.GameCreateType:
-		return []Query{
+		queries := []Query{
 			GameQuery(event.GameId),
 		}
+
+		if event.WhiteId != "" {
+			queries = append(queries, UserGamesQuery(event.WhiteId))
+		}
+
+		if event.BlackId != "" {
+			queries = append(queries, UserGamesQuery(event.BlackId))
+		}
+
+		return queries
 	case events.GameStartType:
 		return []Query{
 			GameQuery(event.GameId),
