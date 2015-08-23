@@ -48,7 +48,7 @@ func (suite *EventsTestSuite) SetupTest() {
 	suite.events = events
 	suite.mockSubscriber = subscriber
 
-	suite.events.db.Delete(Event{})
+	suite.events.ResetTestDB()
 }
 
 func (suite *EventsTestSuite) TestReceive() {
