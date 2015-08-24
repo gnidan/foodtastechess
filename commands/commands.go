@@ -47,10 +47,7 @@ func (s *CommandsService) ExecCommand(name string, userId users.Id, params map[s
 	for _, validator := range cmd.validators {
 		ok, msg = validator(ctx, s)
 		if !ok {
-			return false, fmt.Sprintf(
-				"Command Invalid: %s",
-				msg,
-			)
+			return false, msg
 		}
 	}
 
