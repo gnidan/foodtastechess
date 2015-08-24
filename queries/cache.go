@@ -29,6 +29,7 @@ func (c *queriesCache) PostPopulate() error {
 	)
 
 	session, err := mgo.Dial(url)
+	session.SetMode(mgo.Monotonic, true)
 
 	c.session = session
 	c.collection = session.DB(c.Config.Database).C("queries")
