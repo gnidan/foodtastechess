@@ -80,3 +80,9 @@ func ValidMovesAtTurnQuery(gameId game.Id, turnNumber game.TurnNumber) Query {
 		TurnNumber: turnNumber,
 	}
 }
+
+func GameEndQuery(gameId game.Id) Query {
+	return &gameEndQuery{
+		GameId: gameId,
+	}
+}

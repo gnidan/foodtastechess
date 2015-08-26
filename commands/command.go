@@ -77,6 +77,7 @@ const Move = "move"
 var moveCommand = makeCommand(Move, command{
 	validators: []validator{
 		gameExists,
+		gameNotEnded,
 		userPlaying,
 		userActive,
 		gameHasNoDrawOffer,

@@ -51,6 +51,7 @@ func (api *ChessApi) PostPopulate() error {
 		rest.Post("/games/:id/move", api.PostMove),
 		rest.Post("/games/:id/offerdraw", api.PostDrawOffer),
 		rest.Post("/games/:id/respondoffer", api.PostDrawOfferResponse),
+		rest.Post("/games/:id/concede", api.PostConcede),
 	)
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not initialize Chess API: %v", err))
@@ -298,6 +299,30 @@ func (api *ChessApi) PostDrawOfferResponse(res rest.ResponseWriter, req *rest.Re
 		commands.OfferDraw, user.Uuid, map[string]interface{}{
 			"gameId": gameId,
 			"accept": body.Accept,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostConcede(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.Concede, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
 		},
 	)
 

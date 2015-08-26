@@ -55,6 +55,12 @@ const (
 	GameStatusEnded   GameStatus = "ended"
 )
 
+type GameEnd struct {
+	Occurred bool
+	Reason   game.GameEndReason
+	Winner   game.Color
+}
+
 type GameInformation struct {
 	Id                   game.Id
 	TurnNumber           game.TurnNumber
@@ -64,7 +70,9 @@ type GameInformation struct {
 	Black                users.User
 	GameStatus           GameStatus
 	OutstandingDrawOffer bool
-	DrawOfferer          game.Color `json:",omitempty"`
+	DrawOfferer          game.Color         `json:",omitempty"`
+	Winner               game.Color         `json:",omitempty"`
+	GameEndReason        game.GameEndReason `json:",omitempty"`
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
@@ -111,7 +119,16 @@ func (s *ClientQueryService) GameInformation(id game.Id) (GameInformation, bool)
 	if drawOfferer == game.NoOne {
 		gameInfo.OutstandingDrawOffer = false
 	} else {
+		gameInfo.OutstandingDrawOffer = true
 		gameInfo.DrawOfferer = drawOfferer
+	}
+
+	if gameInfo.GameStatus == GameStatusEnded {
+		gameEndQ := GameEndQuery(id)
+		gameEnd := s.SystemQueries.AnswerQuery(gameEndQ).(GameEnd)
+
+		gameInfo.GameEndReason = gameEnd.Reason
+		gameInfo.Winner = gameEnd.Winner
 	}
 
 	return *gameInfo, true
