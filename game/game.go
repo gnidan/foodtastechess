@@ -2,7 +2,12 @@ package game
 
 import (
 	"database/sql/driver"
+	"github.com/op/go-logging"
+
+	"foodtastechess/logger"
 )
+
+var log *logging.Logger = logger.Log("game")
 
 type Id int
 
@@ -53,6 +58,7 @@ type Color string
 const (
 	White Color = "white"
 	Black Color = "black"
+	NoOne Color = ""
 )
 
 func (u *Color) Scan(value interface{}) error {
@@ -67,4 +73,21 @@ func (u Color) Value() (driver.Value, error) {
 type MoveRecord struct {
 	Move                AlgebraicMove
 	ResultingBoardState FEN
+}
+
+type GameEndReason string
+
+const (
+	GameEndConcede   = "concede"
+	GameEndDraw      = "stalemate"
+	GameEndCheckmate = "checkmate"
+)
+
+func (u *GameEndReason) Scan(value interface{}) error {
+	*u = GameEndReason(value.([]byte))
+	return nil
+}
+
+func (u GameEndReason) Value() (driver.Value, error) {
+	return string(u), nil
 }

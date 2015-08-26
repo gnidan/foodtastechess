@@ -38,14 +38,18 @@ func NewSystemQueryService() SystemQueries {
 
 func (s *SystemQueryService) AnswerQuery(query Query) interface{} {
 	found := s.Cache.Get(query)
-	if !found {
+	if found {
+		s.log.Info("Query %s retrieved from cache: %v", query.hash(), query.getResult())
+	} else {
 		s.computeAnswer(query, true)
+		s.log.Info("Query %s computed: %v", query.hash(), query.getResult())
 	}
 	return query.getResult()
 }
 
 func (s *SystemQueryService) computeAnswer(query Query, skipSearch bool) {
 	if !skipSearch && s.Cache.Get(query) {
+		s.log.Info("Query %s invalidated, recomputing", query.hash())
 		s.Cache.Delete(query)
 	}
 

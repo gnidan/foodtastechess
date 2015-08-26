@@ -23,17 +23,16 @@ func (u Id) Value() (driver.Value, error) {
 }
 
 type User struct {
-	Id                int
-	Uuid              Id `sql:"unique_index"`
+	Id                int `json:"-"`
+	Uuid              Id  `sql:"unique_index" json:"-"`
 	Name              string
 	AvatarUrl         string
-	AuthIdentifier    string `sql:"unique_index"`
-	AccessToken       string
-	AccessTokenSecret string
+	AuthIdentifier    string `sql:"unique_index" json:"-"`
+	AccessToken       string `json:"-"`
+	AccessTokenSecret string `json:"-"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time
 }
 
 func (u User) TableName() string {

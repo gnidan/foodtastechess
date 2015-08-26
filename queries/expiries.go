@@ -79,3 +79,13 @@ func (q *gameQuery) isExpired(now interface{}) bool {
 func (q *gameQuery) getExpiration(now interface{}) interface{} {
 	return nil
 }
+
+// Game End Query
+
+func (q *gameEndQuery) isExpired(now interface{}) bool {
+	return false
+}
+
+func (q *gameEndQuery) getExpiration(now interface{}) interface{} {
+	return nil
+}

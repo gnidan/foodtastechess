@@ -1,42 +1,139 @@
 package main
 
 import (
+	"fmt"
+	"github.com/op/go-logging"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
 
+	"foodtastechess/commands"
+	"foodtastechess/config"
+	"foodtastechess/directory"
+	"foodtastechess/events"
+	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
-	"foodtastechess/server"
+	"foodtastechess/users"
 )
 
-// TestService is a placeholder struct that requires a bunch
-// of injected services.
-//
-// Used to test that the application is actually initializing
-// these services, and that if we provide a new dependent
-// component, it will be populated accordingly.
-type TestService struct {
-	HttpServer         *server.Server              `inject:"httpServer"`
-	ClientQueryService *queries.ClientQueryService `inject:"clientQueries"`
-	SystemQueryService *queries.SystemQueryService `inject:"systemQueries"`
+type IntegrationTestSuite struct {
+	suite.Suite
+
+	log      *logging.Logger
+	Cache    queries.Cache
+	Commands commands.Commands
+	Queries  queries.ClientQueries
+	Events   events.Events
+
+	whiteId users.Id
+	blackId users.Id
 }
 
-// TestServices sets up a TestService struct that gets provided
-// to the graph in order to be injected with the various
-// services we expect to be initialized by the app
-func TestServices(t *testing.T) {
-	log = logger.Log("main_test")
+func (suite *IntegrationTestSuite) SetupTest() {
+	configProvider := config.NewConfigProvider("testconfig", "./")
 
-	app = NewApp()
+	suite.log = logger.Log("integration_test")
 
-	var service TestService
-	app.directory.AddService("testService", &service)
+	suite.Commands = commands.New()
+	suite.Queries = queries.NewClientQueryService()
 
-	app.LoadServices()
+	systemQueries := queries.NewSystemQueryService().(*queries.SystemQueryService)
+	eventsService := events.NewEvents().(*events.EventsService)
+	usersService := users.NewUsers().(*users.UsersService)
 
-	assert := assert.New(t)
+	d := directory.New()
+	d.AddService("configProvider", configProvider)
+	d.AddService("gameCalculator", game.NewGameCalculator())
+	d.AddService("eventSubscriber", queries.NewQueryBuffer())
 
-	assert.NotNil(service.HttpServer)
-	assert.NotNil(service.ClientQueryService)
-	assert.NotNil(service.SystemQueryService)
+	d.AddService("systemQueries", systemQueries)
+	d.AddService("events", eventsService)
+	d.AddService("users", usersService)
+
+	d.AddService("commands", suite.Commands)
+	d.AddService("clientQueries", suite.Queries)
+
+	err := d.Start()
+	if err != nil {
+		suite.log.Fatalf("Could not start directory: %v", err)
+	}
+
+	err = d.Start("eventSubscriber")
+	if err != nil {
+		msg := fmt.Sprintf("Could not start event subscriber: %v", err)
+		log.Error(msg)
+		return
+	}
+
+	usersService.ResetTestDB()
+	eventsService.ResetTestDB()
+	systemQueries.Cache.Flush()
+
+	time.Sleep(1 * time.Second)
+
+	white := users.User{
+		Uuid:           users.NewId(),
+		Name:           "whitePlayer",
+		AuthIdentifier: "whiteAuthId",
+	}
+	usersService.Save(&white)
+
+	black := users.User{
+		Uuid:           users.NewId(),
+		Name:           "blackPlayer",
+		AuthIdentifier: "blackAuthId",
+	}
+	usersService.Save(&black)
+
+	suite.log.Info("white UUID: %s", white.Uuid)
+	suite.log.Info("black UUID: %s", black.Uuid)
+	suite.whiteId = white.Uuid
+	suite.blackId = black.Uuid
+}
+
+func (suite *IntegrationTestSuite) TestGameFlow() {
+	assert := assert.New(suite.T())
+	var (
+		ok     bool
+		msg    string
+		gameId game.Id
+	)
+
+	// Create Game
+	ok, msg = suite.Commands.ExecCommand(
+		commands.CreateGame, suite.whiteId, map[string]interface{}{
+			"color": game.White,
+		},
+	)
+	assert.Equal(true, ok, msg)
+
+	time.Sleep(100 * time.Millisecond)
+
+	userGames := suite.Queries.UserGames(suite.whiteId)
+	assert.Equal(1, len(userGames))
+
+	gameId = userGames[0]
+
+	// Join Game
+	ok, msg = suite.Commands.ExecCommand(
+		commands.JoinGame, suite.blackId, map[string]interface{}{
+			"gameId": gameId,
+		},
+	)
+	assert.Equal(true, ok, msg)
+
+	time.Sleep(100 * time.Millisecond)
+
+	suite.log.Debug("Black ID: %s", suite.blackId)
+	userGames = suite.Queries.UserGames(suite.blackId)
+	assert.Equal(1, len(userGames))
+
+	gameInfo, _ := suite.Queries.GameInformation(gameId)
+	assert.Equal(queries.GameStatusStarted, gameInfo.GameStatus)
+}
+
+func TestIntegration(t *testing.T) {
+	suite.Run(t, new(IntegrationTestSuite))
 }

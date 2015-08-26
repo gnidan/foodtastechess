@@ -37,6 +37,7 @@ func NewConfigProvider(nameAndPaths ...string) ConfigProvider {
 	cfg.initLogging()
 	cfg.initSections()
 	cfg.initValues()
+	cfg.log.Info("Using Config: %s.yml", cfg.name)
 	return cfg
 }
 

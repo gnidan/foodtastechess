@@ -1,14 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/op/go-logging"
 	"os"
 	"os/signal"
+	"syscall"
 
+	"foodtastechess/commands"
 	"foodtastechess/config"
 	"foodtastechess/directory"
 	"foodtastechess/events"
+	"foodtastechess/fixtures"
 	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
@@ -25,14 +29,21 @@ type App struct {
 	config    config.ConfigProvider
 	directory directory.Directory
 	StopChan  chan bool `inject:"stopChan"`
+
+	runFixtures *bool
 }
 
 func NewApp() *App {
-	wd, _ := os.Getwd()
-
 	app := new(App)
-	app.directory = directory.New()
+
+	wd, _ := os.Getwd()
 	app.config = config.NewConfigProvider("config", wd)
+
+	app.directory = directory.New()
+
+	app.runFixtures = flag.Bool("fixtures", false, "run fixtures")
+	flag.Parse()
+
 	return app
 }
 
@@ -44,12 +55,14 @@ func (app *App) LoadServices() error {
 	services := map[string](interface{}){
 		"configProvider":  app.config,
 		"httpServer":      server.New(),
+		"commands":        commands.New(),
 		"clientQueries":   queries.NewClientQueryService(),
 		"systemQueries":   queries.NewSystemQueryService(),
 		"users":           users.NewUsers(),
 		"events":          events.NewEvents(),
 		"gameCalculator":  game.NewGameCalculator(),
 		"eventSubscriber": queries.NewQueryBuffer(),
+		"fixtures":        fixtures.NewFixtures(),
 
 		"stopChan": app.StopChan,
 	}
@@ -86,6 +99,16 @@ func (app *App) Start() {
 		log.Error(msg)
 		return
 	}
+
+	if *app.runFixtures {
+		err = app.directory.Start("fixtures")
+		if err != nil {
+			msg := fmt.Sprintf("Could not populate fixtures: %v", err)
+			log.Error(msg)
+			return
+		}
+	}
+
 }
 
 func (app *App) Stop() {
@@ -121,7 +144,7 @@ func main() {
 	app.Start()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	for {
 		select {

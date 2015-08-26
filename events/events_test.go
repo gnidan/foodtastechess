@@ -48,7 +48,7 @@ func (suite *EventsTestSuite) SetupTest() {
 	suite.events = events
 	suite.mockSubscriber = subscriber
 
-	suite.events.db.Delete(Event{})
+	suite.events.ResetTestDB()
 }
 
 func (suite *EventsTestSuite) TestReceive() {
@@ -83,7 +83,7 @@ func (suite *EventsTestSuite) TestEventsOfTypeForPlayer() {
 			NewGameStartEvent(1, player1, player2),
 			NewGameStartEvent(2, player2, player1),
 			NewGameStartEvent(3, player2, player1),
-			NewGameEndEvent(3, player2, player1),
+			NewGameEndEvent(3, game.GameEndDraw, game.NoOne, player2, player1),
 		}
 	)
 

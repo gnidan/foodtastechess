@@ -91,12 +91,13 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		turnNumberQuery  Query = TurnNumberQuery(gameId)
 		boardStateQuery  Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
 		gamePlayersQuery Query = GamePlayersQuery(gameId)
+		drawOfferQuery   Query = DrawOfferStateQuery(gameId)
 	)
 
 	// given our expected queries, return our respective expected results
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", turnNumberQuery).
 		Return(expectedTurnNumber)
@@ -106,6 +107,9 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	suite.mockSystemQueries.
 		On("AnswerQuery", gamePlayersQuery).
 		Return(gamePlayers)
+	suite.mockSystemQueries.
+		On("AnswerQuery", drawOfferQuery).
+		Return(game.NoOne)
 
 	suite.mockUsers.
 		On("Get", whiteId).
@@ -131,7 +135,7 @@ func (suite *ClientQueriesTestSuite) TestGameInformationGameDNE() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(false)
+		Return(GameStatusNull)
 
 	_, found := suite.clientQueries.GameInformation(gameId)
 	assert := assert.New(suite.T())
@@ -159,7 +163,7 @@ func (suite *ClientQueriesTestSuite) TestGameHistory() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", TurnNumberQuery(gameId)).
 		Return(game.TurnNumber(len(moves)))
@@ -221,7 +225,7 @@ func (suite *ClientQueriesTestSuite) TestValidMoves() {
 
 	suite.mockSystemQueries.
 		On("AnswerQuery", GameQuery(gameId)).
-		Return(true)
+		Return(GameStatusStarted)
 	suite.mockSystemQueries.
 		On("AnswerQuery", TurnNumberQuery(gameId)).
 		Return(turnNumber)

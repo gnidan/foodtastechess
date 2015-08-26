@@ -14,13 +14,14 @@ func NewGameCalculator() GameCalculator {
 }
 
 func (s *GameCalculatorService) StartingFEN() FEN {
-	return FEN("")
+	return InitializeFEN()
 }
 
 func (s *GameCalculatorService) AfterMove(initial FEN, move AlgebraicMove) FEN {
-	return FEN("")
+	return AfterMove(move, initial)
 }
 
 func (s *GameCalculatorService) ValidMoves(state FEN) []AlgebraicMove {
-	return []AlgebraicMove{}
+	log.Debug("calculating valid moves")
+	return AllValidMoves(state)
 }

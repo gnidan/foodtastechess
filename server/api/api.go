@@ -3,9 +3,11 @@ package api
 import (
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
+	"math/rand"
 	"net/http"
 	"strconv"
 
+	"foodtastechess/commands"
 	"foodtastechess/game"
 	"foodtastechess/logger"
 	"foodtastechess/queries"
@@ -15,7 +17,8 @@ import (
 var log = logger.Log("chessApi")
 
 type ChessApi struct {
-	ClientQueries queries.ClientQueries `inject:"clientQueries"`
+	Queries  queries.ClientQueries `inject:"clientQueries"`
+	Commands commands.Commands     `inject:"commands"`
 
 	restApi *rest.Api
 }
@@ -42,6 +45,13 @@ func (api *ChessApi) PostPopulate() error {
 		rest.Get("/games/:id/", api.GetGameInfo),
 		rest.Get("/games/:id/history", api.GetGameHistory),
 		rest.Get("/games/:id/validmoves", api.GetGameValidMoves),
+
+		rest.Post("/games/create", api.PostCreateGame),
+		rest.Post("/games/:id/join", api.PostJoinGame),
+		rest.Post("/games/:id/move", api.PostMove),
+		rest.Post("/games/:id/offerdraw", api.PostDrawOffer),
+		rest.Post("/games/:id/respondoffer", api.PostDrawOfferResponse),
+		rest.Post("/games/:id/concede", api.PostConcede),
 	)
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not initialize Chess API: %v", err))
@@ -61,10 +71,12 @@ func (api *ChessApi) Handler() http.Handler {
 
 func (api *ChessApi) GetGames(res rest.ResponseWriter, req *rest.Request) {
 	u := getUser(req)
-	res.WriteJson(api.ClientQueries.UserGames(u))
+	res.WriteJson(api.Queries.UserGames(u.Uuid))
 }
 
 func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
+	u := getUser(req)
+
 	id := req.PathParam("id")
 	intId, err := strconv.Atoi(id)
 	gameId := game.Id(intId)
@@ -74,15 +86,40 @@ func (api *ChessApi) GetGameInfo(res rest.ResponseWriter, req *rest.Request) {
 		return
 	}
 
-	gameInfo, found := api.ClientQueries.GameInformation(gameId)
-
+	gameInfo, found := api.Queries.GameInformation(gameId)
 	if !found {
 		log.Debug("Recieved an invalid gameid, it was not an int: %s", id)
 		rest.NotFound(res, req)
 		return
 	}
 
-	res.WriteJson(gameInfo)
+	type Response struct {
+		GameInfo        queries.GameInformation `json:",inline"`
+		UserColor       game.Color              `json:",omitempty"`
+		UserActive      bool
+		DrawOfferToUser bool
+	}
+
+	response := new(Response)
+	response.GameInfo = gameInfo
+
+	if u.Uuid == gameInfo.White.Uuid {
+		response.UserColor = game.White
+		response.UserActive = gameInfo.ActiveColor == game.White
+
+		if gameInfo.OutstandingDrawOffer && gameInfo.DrawOfferer == game.Black {
+			response.DrawOfferToUser = true
+		}
+	} else if u.Uuid == gameInfo.Black.Uuid {
+		response.UserColor = game.Black
+		response.UserActive = gameInfo.ActiveColor == game.Black
+
+		if gameInfo.OutstandingDrawOffer && gameInfo.DrawOfferer == game.White {
+			response.DrawOfferToUser = true
+		}
+	}
+
+	res.WriteJson(response)
 }
 
 func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) {
@@ -95,7 +132,7 @@ func (api *ChessApi) GetGameHistory(res rest.ResponseWriter, req *rest.Request) 
 		return
 	}
 
-	history, found := api.ClientQueries.GameHistory(gameId)
+	history, found := api.Queries.GameHistory(gameId)
 	if !found {
 		rest.NotFound(res, req)
 		return
@@ -113,13 +150,189 @@ func (api *ChessApi) GetGameValidMoves(res rest.ResponseWriter, req *rest.Reques
 		rest.NotFound(res, req)
 	}
 
-	validMoves, found := api.ClientQueries.ValidMoves(gameId)
+	validMoves, found := api.Queries.ValidMoves(gameId)
 	if !found {
 		rest.NotFound(res, req)
 		return
 	}
 
 	res.WriteJson(validMoves)
+}
+
+func (api *ChessApi) PostCreateGame(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	type createBody struct {
+		Color game.Color `json:"Color"`
+	}
+
+	body := new(createBody)
+	err := req.DecodeJsonPayload(body)
+
+	if err != nil || body.Color == "" {
+		idx := rand.Perm(2)[0]
+		body.Color = []game.Color{game.White, game.Black}[idx]
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.CreateGame, user.Uuid, map[string]interface{}{
+			"color": body.Color,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostJoinGame(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.JoinGame, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostMove(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	type moveBody struct {
+		Move game.AlgebraicMove `json:"Move"`
+	}
+
+	body := new(moveBody)
+	err = req.DecodeJsonPayload(body)
+	if err != nil || body.Move == "" {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": "Move must be a move"})
+		return
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.Move, user.Uuid, map[string]interface{}{
+			"move":   body.Move,
+			"gameId": gameId,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostDrawOffer(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.OfferDraw, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostDrawOfferResponse(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	type responseBody struct {
+		Accept bool `json:"Accept"`
+	}
+
+	body := new(responseBody)
+	err = req.DecodeJsonPayload(body)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": "Accept must be a boolean."})
+		return
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.OfferDraw, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
+			"accept": body.Accept,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
+}
+
+func (api *ChessApi) PostConcede(res rest.ResponseWriter, req *rest.Request) {
+	user := getUser(req)
+
+	intId, err := strconv.Atoi(req.PathParam("id"))
+	gameId := game.Id(intId)
+	if err != nil {
+		rest.NotFound(res, req)
+	}
+
+	ok, msg := api.Commands.ExecCommand(
+		commands.Concede, user.Uuid, map[string]interface{}{
+			"gameId": gameId,
+		},
+	)
+
+	if ok {
+		res.WriteHeader(http.StatusAccepted)
+		res.WriteJson("ok")
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+		res.WriteJson(map[string]string{"error": msg})
+	}
 }
 
 func getUser(req *rest.Request) users.User {

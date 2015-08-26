@@ -19,6 +19,8 @@ type Event struct {
 	Move        game.AlgebraicMove
 	Offerer     game.Color
 	OfferAccept bool
+	Reason      game.GameEndReason
+	Winner      game.Color
 
 	CreatedAt time.Time
 }
@@ -59,7 +61,7 @@ func NewMoveEvent(gameId game.Id, turnNumber game.TurnNumber, move game.Algebrai
 
 func NewGameCreateEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	event := new(Event)
-	event.Type = GameStartType
+	event.Type = GameCreateType
 	event.GameId = gameId
 	event.WhiteId = whiteId
 	event.BlackId = blackId
@@ -69,15 +71,6 @@ func NewGameCreateEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 func NewGameStartEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	event := new(Event)
 	event.Type = GameStartType
-	event.GameId = gameId
-	event.WhiteId = whiteId
-	event.BlackId = blackId
-	return *event
-}
-
-func NewGameEndEvent(gameId game.Id, whiteId, blackId users.Id) Event {
-	event := new(Event)
-	event.Type = GameEndType
 	event.GameId = gameId
 	event.WhiteId = whiteId
 	event.BlackId = blackId
@@ -97,5 +90,16 @@ func NewDrawOfferResponseEvent(gameId game.Id, accept bool) Event {
 	event.Type = DrawOfferResponseType
 	event.GameId = gameId
 	event.OfferAccept = accept
+	return *event
+}
+
+func NewGameEndEvent(gameId game.Id, reason game.GameEndReason, winner game.Color, whiteId, blackId users.Id) Event {
+	event := new(Event)
+	event.Type = GameEndType
+	event.GameId = gameId
+	event.Reason = reason
+	event.Winner = winner
+	event.WhiteId = whiteId
+	event.BlackId = blackId
 	return *event
 }

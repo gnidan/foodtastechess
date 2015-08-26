@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/codegangsta/negroni"
+	"github.com/rs/cors"
 	"gopkg.in/tylerb/graceful.v1"
 	"net"
 	"net/http"
@@ -47,6 +48,22 @@ func (s *Server) PreProvide(provide directory.Provider) error {
 
 func (s *Server) Start() error {
 	n := negroni.New()
+	n.Use(cors.New(cors.Options{
+		AllowCredentials: true,
+	}))
+	/*
+		n.Use(&rest.CorsMiddleware{
+			RejectNonCorsRequests: false,
+			OriginValidator: func(origin string, request *rest.Request) bool {
+				return true
+			},
+			AllowedMethods: []string{"GET", "POST"},
+			AllowedHeaders: []string{
+				"Accept", "Content-Type", "X-Custom-Header", "Origin"},
+			AccessControlAllowCredentials: true,
+			AccessControlMaxAge:           3600,
+		})
+	*/
 	n.Use(negroni.NewRecovery())
 	n.Use(NewLogger())
 	n.UseFunc(s.Auth.LoginRequired)

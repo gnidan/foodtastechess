@@ -12,6 +12,7 @@ type Cache interface {
 	Get(partial Query) bool
 	Store(query Query)
 	Delete(partial Query)
+	Flush()
 }
 
 type queriesCache struct {
@@ -28,6 +29,7 @@ func (c *queriesCache) PostPopulate() error {
 	)
 
 	session, err := mgo.Dial(url)
+	session.SetMode(mgo.Monotonic, true)
 
 	c.session = session
 	c.collection = session.DB(c.Config.Database).C("queries")
@@ -44,7 +46,6 @@ func (c *queriesCache) Get(partial Query) bool {
 		Sort("-computedat").
 		One(partial)
 	if err != nil {
-		log.Debug(fmt.Sprintf("Got error retrieving: %v", err))
 		return false
 	}
 
@@ -71,6 +72,11 @@ func (c *queriesCache) Delete(partial Query) {
 			fmt.Sprintf("Got error deleting %s: %v", partial.hash(), err),
 		)
 	}
+}
+
+func (c *queriesCache) Flush() {
+	c.collection.DropCollection()
+	c.collection = c.session.DB(c.Config.Database).C("queries")
 }
 
 func lookupFor(query Query) map[string]string {

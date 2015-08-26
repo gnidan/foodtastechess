@@ -11,26 +11,18 @@ type drawOfferStateQuery struct {
 	GameId game.Id
 
 	Answered bool
-	result   drawOfferState
+	Result   game.Color
 
 	// Compose a queryRecord
 	queryRecord `bson:",inline"`
 }
-
-type drawOfferState string
-
-const (
-	noDrawOffer    drawOfferState = "none"
-	blackDrawOffer drawOfferState = "black"
-	whiteDrawOffer drawOfferState = "white"
-)
 
 func (q *drawOfferStateQuery) hasResult() bool {
 	return q.Answered
 }
 
 func (q *drawOfferStateQuery) getResult() interface{} {
-	return q.result
+	return q.Result
 }
 
 func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
@@ -39,15 +31,15 @@ func (q *drawOfferStateQuery) computeResult(queries SystemQueries) {
 
 	q.Answered = true
 	if len(responses) == len(offers) {
-		q.result = noDrawOffer
+		q.Result = game.NoOne
 		return
 	}
 
 	lastOffer := offers[len(offers)-1]
 	if lastOffer.Offerer == game.White {
-		q.result = whiteDrawOffer
+		q.Result = game.White
 	} else {
-		q.result = blackDrawOffer
+		q.Result = game.Black
 	}
 }
 

@@ -67,7 +67,7 @@ func (suite *DrawOfferStateQueryTestSuite) TestComputeResult() {
 
 	query = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
 	query.computeResult(suite.mockSystemQueries)
-	assert.Equal(whiteDrawOffer, query.result)
+	assert.Equal(game.White, query.Result)
 
 	// Offer -> Accept
 	gameId = 2
@@ -85,7 +85,7 @@ func (suite *DrawOfferStateQueryTestSuite) TestComputeResult() {
 
 	query = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
 	query.computeResult(suite.mockSystemQueries)
-	assert.Equal(noDrawOffer, query.result)
+	assert.Equal(game.NoOne, query.Result)
 
 	// Offer -> Reject -> New Offer
 	gameId = 3
@@ -104,7 +104,7 @@ func (suite *DrawOfferStateQueryTestSuite) TestComputeResult() {
 
 	query = DrawOfferStateQuery(gameId).(*drawOfferStateQuery)
 	query.computeResult(suite.mockSystemQueries)
-	assert.Equal(blackDrawOffer, query.result)
+	assert.Equal(game.Black, query.Result)
 }
 
 func TestDrawOfferStateQueryTestSuite(t *testing.T) {
