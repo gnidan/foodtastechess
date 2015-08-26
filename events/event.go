@@ -19,6 +19,8 @@ type Event struct {
 	Move        game.AlgebraicMove
 	Offerer     game.Color
 	OfferAccept bool
+	Reason      game.GameEndReason
+	Winner      game.Color
 
 	CreatedAt time.Time
 }
@@ -75,15 +77,6 @@ func NewGameStartEvent(gameId game.Id, whiteId, blackId users.Id) Event {
 	return *event
 }
 
-func NewGameEndEvent(gameId game.Id, whiteId, blackId users.Id) Event {
-	event := new(Event)
-	event.Type = GameEndType
-	event.GameId = gameId
-	event.WhiteId = whiteId
-	event.BlackId = blackId
-	return *event
-}
-
 func NewDrawOfferEvent(gameId game.Id, color game.Color) Event {
 	event := new(Event)
 	event.Type = DrawOfferType
@@ -97,5 +90,16 @@ func NewDrawOfferResponseEvent(gameId game.Id, accept bool) Event {
 	event.Type = DrawOfferResponseType
 	event.GameId = gameId
 	event.OfferAccept = accept
+	return *event
+}
+
+func NewGameEndEvent(gameId game.Id, reason game.GameEndReason, winner game.Color, whiteId, blackId users.Id) Event {
+	event := new(Event)
+	event.Type = GameEndType
+	event.GameId = gameId
+	event.Reason = reason
+	event.Winner = winner
+	event.WhiteId = whiteId
+	event.BlackId = blackId
 	return *event
 }

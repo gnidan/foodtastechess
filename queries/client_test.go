@@ -91,6 +91,7 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 		turnNumberQuery  Query = TurnNumberQuery(gameId)
 		boardStateQuery  Query = BoardAtTurnQuery(gameId, expectedTurnNumber)
 		gamePlayersQuery Query = GamePlayersQuery(gameId)
+		drawOfferQuery   Query = DrawOfferStateQuery(gameId)
 	)
 
 	// given our expected queries, return our respective expected results
@@ -106,6 +107,9 @@ func (suite *ClientQueriesTestSuite) TestGameInformation() {
 	suite.mockSystemQueries.
 		On("AnswerQuery", gamePlayersQuery).
 		Return(gamePlayers)
+	suite.mockSystemQueries.
+		On("AnswerQuery", drawOfferQuery).
+		Return(game.NoOne)
 
 	suite.mockUsers.
 		On("Get", whiteId).

@@ -65,7 +65,7 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 	for _, id := range finishedGames {
 		gameCreates = append(gameCreates, events.NewGameCreateEvent(id, playerId, playerId))
 		gameStarts = append(gameStarts, events.NewGameStartEvent(id, playerId, playerId))
-		gameEnds = append(gameEnds, events.NewGameEndEvent(id, playerId, playerId))
+		gameEnds = append(gameEnds, events.NewGameEndEvent(id, game.GameEndCheckmate, game.Black, playerId, playerId))
 	}
 
 	suite.mockEvents.
@@ -92,7 +92,11 @@ func (suite *UserGamesQueryTestSuite) TestComputeResult() {
 		assert.Contains(query.Result, id)
 	}
 
-	assert.Equal(len(activeGames), len(query.Result))
+	for _, id := range finishedGames {
+		assert.Contains(query.Result, id)
+	}
+
+	assert.Equal(len(activeGames)+len(finishedGames), len(query.Result))
 
 	assert.Equal(true, query.hasResult())
 }

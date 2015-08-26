@@ -56,13 +56,15 @@ const (
 )
 
 type GameInformation struct {
-	Id          game.Id
-	TurnNumber  game.TurnNumber
-	ActiveColor game.Color
-	BoardState  game.FEN
-	White       users.User
-	Black       users.User
-	GameStatus  GameStatus
+	Id                   game.Id
+	TurnNumber           game.TurnNumber
+	ActiveColor          game.Color
+	BoardState           game.FEN
+	White                users.User
+	Black                users.User
+	GameStatus           GameStatus
+	OutstandingDrawOffer bool
+	DrawOfferer          game.Color `json:",omitempty"`
 }
 
 // GameInformation accepts a game ID and queries the SQS for GameInformation
@@ -102,6 +104,14 @@ func (s *ClientQueryService) GameInformation(id game.Id) (GameInformation, bool)
 	black, found := s.Users.Get(gamePlayers[game.Black])
 	if found {
 		gameInfo.Black = black
+	}
+
+	drawOfferStateQ := DrawOfferStateQuery(id)
+	drawOfferer := s.SystemQueries.AnswerQuery(drawOfferStateQ).(game.Color)
+	if drawOfferer == game.NoOne {
+		gameInfo.OutstandingDrawOffer = false
+	} else {
+		gameInfo.DrawOfferer = drawOfferer
 	}
 
 	return *gameInfo, true

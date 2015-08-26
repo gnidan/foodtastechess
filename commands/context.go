@@ -11,4 +11,5 @@ type context struct {
 	gameId      game.Id
 	move        game.AlgebraicMove
 	colorChoice game.Color
+	accept      bool
 }
