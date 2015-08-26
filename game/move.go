@@ -267,13 +267,116 @@ func intToFile(file int) string {
 	return ""
 } //intToFile
 
+//returns true if move would checkmate opponent
+func checkOrCheckmateNotation(fen FEN, algebraicMove AlgebraicMove) string {
+	//if checkmate, append # to notation
+	prevState := fen.ConvertToState()
+	newFEN := AfterMove(algebraicMove, fen)
+	state := newFEN.ConvertToState()
+	oppColor := state.activeColor
+
+	isKingFound := false
+KingSearchLoop:
+	for file := 1; file <= 8; file++ {
+		for rank := 1; rank <= 8; rank++ {
+			piece := state.PieceAtPosition(NewPosition(file, rank))
+			if piece == nil {
+				continue
+			}
+			pieceName := reflect.TypeOf(piece).Name()
+			if pieceName == "King" && piece.Color() == oppColor {
+				isKingFound = true
+				break KingSearchLoop
+			}
+		} //for rank
+	} //for file
+	if !isKingFound {
+		return "#"
+	}
+
+	//look if move puts opponent in check
+	//if color switches with no move, and opponent can be taken, it's a check
+	tempState := state
+	tempState.activeColor = prevState.activeColor
+	nextFEN := tempState.ConvertToFEN()
+	moveList := AllPossibleMoves(nextFEN)
+	isKingFound = false
+CheckLoop:
+	for _, move := range moveList {
+		isKingFound = false
+		tempFEN := AfterMove(move, nextFEN)
+		nextState := tempFEN.ConvertToState()
+
+		for file := 1; file <= 8; file++ {
+			for rank := 1; rank <= 8; rank++ {
+				piece := nextState.PieceAtPosition(NewPosition(file, rank))
+				if piece == nil {
+					continue
+				}
+				pieceName := reflect.TypeOf(piece).Name()
+				if pieceName == "King" && piece.Color() == oppColor {
+					isKingFound = true
+					continue CheckLoop
+				}
+			} //for rank
+		} //for file
+		if !isKingFound {
+
+			//check if opponent has any valid moves,
+			//if he doesn't, it's checkmate
+			moveList := AllValidMovesWithoutExtraNotation(newFEN)
+			if len(moveList) == 0 {
+				return "#"
+			}
+			return "+"
+		}
+	}
+
+	//if halfmove clock hits 100 after the move, it's a stalemate
+	if state.halfmoveClock >= 100 {
+		return "S"
+	}
+
+	//if there are no valid moves for opponent,
+	//and check/checkmate wasn't performed,
+	//then it is a stalemate
+	nextMoveList := AllValidMovesWithoutExtraNotation(newFEN)
+	if nextMoveList == nil {
+		return "S"
+	}
+
+	return ""
+}
+
 func AllValidMoves(fen FEN) []AlgebraicMove {
 	state := fen.ConvertToState()
 
 	fullMovesList := []AlgebraicMove{}
 	for file := 1; file <= 8; file++ {
 		for rank := 1; rank <= 8; rank++ {
-			fullMovesList = append(fullMovesList, state.ValidMovesAtPos(NewPosition(file, rank))...)
+			movesForPosition := state.ValidMovesAtPos(NewPosition(file, rank))
+			fullMovesList = append(fullMovesList, movesForPosition...)
+		} //for rank
+	} //for file
+
+	//add notation(s) for check or checkmate if necessary
+	for count := 0; count < len(fullMovesList); count++ {
+		stringMove := string(fullMovesList[count])
+		stringMove += checkOrCheckmateNotation(fen, fullMovesList[count])
+		fullMovesList[count] = AlgebraicMove(stringMove)
+	} //for move
+
+	return fullMovesList
+}
+
+func AllValidMovesWithoutExtraNotation(fen FEN) []AlgebraicMove {
+	state := fen.ConvertToState()
+
+	fullMovesList := []AlgebraicMove{}
+	for file := 1; file <= 8; file++ {
+		for rank := 1; rank <= 8; rank++ {
+			movesForPosition := state.ValidMovesAtPos(NewPosition(file, rank))
+			fullMovesList = append(fullMovesList, movesForPosition...)
 		} //for rank
 	} //for file
 
@@ -339,18 +442,20 @@ OuterLoop:
 
 		for _, oppMove := range oppPossibleMoves {
 			stringAN := string(oppMove)
-			stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
-			oppFileStr := stringAN[:1]           // file string
-			stringAN = stringAN[1:len(stringAN)] //Remove file char
-			oppRankStr := stringAN[:1]           // rank string
+			if stringAN != "0-0" && stringAN != "0-0-0" {
+				stringAN = stringAN[4:len(stringAN)] //Remove first 4 chars, not needed
+				oppFileStr := stringAN[:1]           // file string
+				stringAN = stringAN[1:len(stringAN)] //Remove file char
+				oppRankStr := stringAN[:1]           // rank string
 
-			oppFile := fileToInt(oppFileStr)
-			oppRank, _ := strconv.Atoi(oppRankStr)
+				oppFile := fileToInt(oppFileStr)
+				oppRank, _ := strconv.Atoi(oppRankStr)
 
-			if oppFile == kingPosFile && oppRank == kingPosRank {
-				//opponent can take king on next move, invalid
-				continue OuterLoop
-			} //fi
+				if oppFile == kingPosFile && oppRank == kingPosRank {
+					//opponent can take king on next move, invalid
+					continue OuterLoop
+				} //fi
+			}
 		} //rof oppMove
 		validMoves = append(validMoves, move) //move is valid if it hits here
 	} //rof move
@@ -480,7 +585,7 @@ func (m *FirstPawnMove) Translate(pos Position, s *GameState) []AlgebraicMove {
 			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
 		}
 		if pawn.Color() == Black && pos.rank == 7 {
-			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "2" + "-" + strNewFile + "4")}
+			return []AlgebraicMove{AlgebraicMove("P" + strOrigFile + "7" + "-" + strNewFile + "5")}
 		}
 	}
 	return nil
