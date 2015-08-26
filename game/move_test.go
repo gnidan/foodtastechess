@@ -91,4 +91,9 @@ func (s *MoveTestSuite) TestMoveConstructor() {
 	nextFEN = AfterMove(AlgebraicMove("Ng5-e6"), nextFEN)   //white knight moves
 	nextFEN = AfterMove(AlgebraicMove("Pe2xf1=Q"), nextFEN) //black pawn promotion to queen w/capture
 	assert.Equal(FEN("r3kbnr/pp1n1ppp/n3N3/2p5/P2P2P1/6PB/1PP2P2/RNBQ1qK1 w - - 0 16"), nextFEN)
+
+	nextFEN = AfterMove(AlgebraicMove("Kg1-h1"), nextFEN) //white knight moves
+	//assert.Equal(FEN("1"), nextFEN)
+	//assert.Equal("1", AllValidMoves(nextFEN))
+
 }
