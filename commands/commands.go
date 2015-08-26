@@ -81,6 +81,13 @@ func makeContext(name string, userId users.Id, params map[string]interface{}) (c
 		}
 	}
 
+	if iface, ok := params["accept"]; ok {
+		ctx.accept, ok = iface.(bool)
+		if !ok {
+			return *ctx, false, "Accept must be a boolean"
+		}
+	}
+
 	if iface, ok := params["color"]; ok {
 		ctx.colorChoice, ok = iface.(game.Color)
 		if !ok {
