@@ -78,9 +78,9 @@ type MoveRecord struct {
 type GameEndReason string
 
 const (
-	GameEndConcede   = "concede"
-	GameEndDraw      = "stalemate"
-	GameEndCheckmate = "checkmate"
+	GameEndConcede   GameEndReason = "concede"
+	GameEndDraw      GameEndReason = "stalemate"
+	GameEndCheckmate GameEndReason = "checkmate"
 )
 
 func (u *GameEndReason) Scan(value interface{}) error {
