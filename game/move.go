@@ -341,7 +341,7 @@ CheckLoop:
 	//and check/checkmate wasn't performed,
 	//then it is a stalemate
 	nextMoveList := AllValidMovesWithoutExtraNotation(newFEN)
-	if nextMoveList == nil {
+	if len(nextMoveList) == 0 {
 		return "S"
 	}
 
