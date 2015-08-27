@@ -92,41 +92,41 @@ func (s *MoveTestSuite) TestMoveConstructor() {
 	nextFEN = AfterMove(AlgebraicMove("Pe2xf1=Q"), nextFEN) //black pawn promotion to queen w/capture
 	assert.Equal(FEN("r3kbnr/pp1n1ppp/n3N3/2p5/P2P2P1/6PB/1PP2P2/RNBQ1qK1 w - - 0 16"), nextFEN)
 
-	nextFEN = AfterMove(AlgebraicMove("Kg1-h1"), nextFEN) //white king moves
+	nextFEN = AfterMove(AlgebraicMove("Kg1-h1"), nextFEN)  //white king moves
 	nextFEN = AfterMove(AlgebraicMove("Ph7-h5+"), nextFEN) //black pawn moves
-	nextFEN = AfterMove(AlgebraicMove("Kh1-h2"), nextFEN) //white king moves
-	nextFEN = AfterMove(AlgebraicMove("Ph5xg4"), nextFEN) //black pawn captures pawn
-	nextFEN = AfterMove(AlgebraicMove("Ra1-a2"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Pg4xh3"), nextFEN) //black pawn captures bishop
-	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rh8-h4"), nextFEN) //black rook moves
-	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rh4xd4"), nextFEN) //black rook captures pawn
-	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rd4xd1"), nextFEN) //black captures queen
-	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rd1xc1"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rc1xb1"), nextFEN) //black rook moves
-	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN) //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Kh1-h2"), nextFEN)  //white king moves
+	nextFEN = AfterMove(AlgebraicMove("Ph5xg4"), nextFEN)  //black pawn captures pawn
+	nextFEN = AfterMove(AlgebraicMove("Ra1-a2"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Pg4xh3"), nextFEN)  //black pawn captures bishop
+	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rh8-h4"), nextFEN)  //black rook moves
+	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rh4xd4"), nextFEN)  //black rook captures pawn
+	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rd4xd1"), nextFEN)  //black captures queen
+	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rd1xc1"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rc1xb1"), nextFEN)  //black rook moves
+	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN)  //white rook moves
 	nextFEN = AfterMove(AlgebraicMove("Rb1x-b2"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rb2xc2"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN) //white rook moves
-	nextFEN = AfterMove(AlgebraicMove("Rc2xa2"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Ne6-d4"), nextFEN) //white knight moves
-	nextFEN = AfterMove(AlgebraicMove("Ra2xa4"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Pf2-f3"), nextFEN) //white pawn moves
-	nextFEN = AfterMove(AlgebraicMove("Ra4xd4"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Pf2-f3"), nextFEN) //white pawn moves
-	nextFEN = AfterMove(AlgebraicMove("Rd4-g4"), nextFEN) //black rook 
-	nextFEN = AfterMove(AlgebraicMove("Pf3-f4"), nextFEN) //white pawn moves
-	nextFEN = AfterMove(AlgebraicMove("Pb7-b6"), nextFEN) //black pawn
-	nextFEN = AfterMove(AlgebraicMove("Pf4-f5"), nextFEN) //white pawn
-	nextFEN = AfterMove(AlgebraicMove("Pb6-b5"), nextFEN) //black rook captures
-	nextFEN = AfterMove(AlgebraicMove("Pf5-f6"), nextFEN) //white pawn 
+	nextFEN = AfterMove(AlgebraicMove("Ra2-a3"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rb2xc2"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Ra3-a2"), nextFEN)  //white rook moves
+	nextFEN = AfterMove(AlgebraicMove("Rc2xa2"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Ne6-d4"), nextFEN)  //white knight moves
+	nextFEN = AfterMove(AlgebraicMove("Ra2xa4"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Pf2-f3"), nextFEN)  //white pawn moves
+	nextFEN = AfterMove(AlgebraicMove("Ra4xd4"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Pf2-f3"), nextFEN)  //white pawn moves
+	nextFEN = AfterMove(AlgebraicMove("Rd4-g4"), nextFEN)  //black rook
+	nextFEN = AfterMove(AlgebraicMove("Pf3-f4"), nextFEN)  //white pawn moves
+	nextFEN = AfterMove(AlgebraicMove("Pb7-b6"), nextFEN)  //black pawn
+	nextFEN = AfterMove(AlgebraicMove("Pf4-f5"), nextFEN)  //white pawn
+	nextFEN = AfterMove(AlgebraicMove("Pb6-b5"), nextFEN)  //black rook captures
+	nextFEN = AfterMove(AlgebraicMove("Pf5-f6"), nextFEN)  //white pawn
 	nextFEN = AfterMove(AlgebraicMove("Pg7xf6S"), nextFEN) //black rook captures, causes stalemate
-	
+
 	assert.Equal(FEN("r3kbn1/p2n1p2/n4p2/1pp5/6r1/6Pp/7K/5q2 w - - 0 33"), nextFEN)
 	assert.Equal([]AlgebraicMove{}, AllValidMoves(nextFEN)) //no valid moves
 
