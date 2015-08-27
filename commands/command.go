@@ -86,10 +86,36 @@ var moveCommand = makeCommand(Move, command{
 
 	gen: func(ctx context, commands Commands) []events.Event {
 		gameInfo, _ := commands.queries().GameInformation(ctx.gameId)
-
-		return []events.Event{
+		es := []events.Event{
 			events.NewMoveEvent(ctx.gameId, gameInfo.TurnNumber+1, ctx.move),
 		}
+
+		whiteId := gameInfo.White.Uuid
+		blackId := gameInfo.Black.Uuid
+
+		var player game.Color
+
+		if ctx.userId == whiteId {
+			player = game.White
+		} else {
+			player = game.Black
+		}
+
+		var lastChar = string(ctx.move)[len(ctx.move)-1:]
+
+		if lastChar == "#" {
+			es = append(es, events.NewGameEndEvent(
+				ctx.gameId, game.GameEndCheckmate, player,
+				whiteId, blackId,
+			))
+		} else if lastChar == "S" {
+			es = append(es, events.NewGameEndEvent(
+				ctx.gameId, game.GameEndDraw, game.NoOne,
+				whiteId, blackId,
+			))
+		}
+
+		return es
 	},
 })
 
