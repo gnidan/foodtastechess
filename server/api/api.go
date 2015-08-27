@@ -296,7 +296,7 @@ func (api *ChessApi) PostDrawOfferResponse(res rest.ResponseWriter, req *rest.Re
 	}
 
 	ok, msg := api.Commands.ExecCommand(
-		commands.OfferDraw, user.Uuid, map[string]interface{}{
+		commands.DrawOfferRespond, user.Uuid, map[string]interface{}{
 			"gameId": gameId,
 			"accept": body.Accept,
 		},
